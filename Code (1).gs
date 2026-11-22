@@ -1,8 +1,8 @@
 /**
  * LD Workplace backend (Google Apps Script)
- * Paste this into: Google Sheet > Extensions > Apps Script.
- * Then run setup() (safe to run again after every update), run createUsers() if needed,
- * and deploy as a Web app (Manage deployments > Edit > New version for updates).
+ * Paste this into: Google Sheet > Extensions > Apps Script (replace everything).
+ * Update steps: paste, Save, run authorize() once, run setup() once,
+ * then Deploy > Manage deployments > Edit > New version > Deploy.
  */
 
 const SHEET_SCHEMA = {
@@ -21,6 +21,12 @@ const SESSION_SECONDS = 21600; // 6 hours (the maximum CacheService allows)
 const MAX_FAILED_LOGINS = 5;
 const MAX_CELL_LENGTH = 5000;
 const MAX_BATCH_ROWS = 200;
+const DATA_CACHE_SECONDS = 600;
+
+// The NPS Google Sheet (read only). Month tabs such as "October" and "November" are picked up automatically.
+const NPS_SHEET_ID = '1daX7FiNp3Yvlwd_mu8dARJY1uJn3BxDtjPhyJNrY0to';
+const NPS_CACHE_SECONDS = 21600;
+const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
 // To set one common password for everyone, type it here, run createUsers(), then empty it again.
 const SHARED_PASSWORD = '';
@@ -41,6 +47,14 @@ function wanted_(name) {
   return ['ID'].concat(SHEET_SCHEMA[name], META_COLUMNS);
 }
 
+// Run this once after pasting new code. It asks permission to read the NPS sheet.
+function authorize() {
+  const book = npsBook_();
+  const tabs = book.getSheets().map(function (s) { return s.getName(); });
+  Logger.log('NPS sheet opened: ' + book.getName());
+  Logger.log('Tabs: ' + tabs.join(', '));
+}
+
 // Creates missing tabs and adds any missing columns at the end. Existing data is never moved or deleted.
 function setup() {
   const ss = ss_();
@@ -59,6 +73,7 @@ function setup() {
   users.setFrozenRows(1);
   const blank = ss.getSheetByName('Sheet1');
   if (blank && ss.getSheets().length > 1 && blank.getLastRow() === 0) ss.deleteSheet(blank);
+  bumpVer_();
 }
 
 function createUsers() {
@@ -110,12 +125,14 @@ function route_(req) {
   const user = verify_(req.token);
   if (!user) return { ok: false, error: 'auth', message: 'Session expired' };
   switch (req.action) {
-    case 'listAll': return listAll_();
+    case 'listAll': return listAll_(!!req.fresh);
     case 'list': return { ok: true, rows: readSheet_(checkSheet_(req.sheet)) };
     case 'add':
     case 'update':
     case 'delete': return write_(req, user);
     case 'addMany': return writeMany_(req, user);
+    case 'npsTabs': return npsTabs_();
+    case 'npsRows': return npsRows_(req);
     default: return { ok: false, error: 'bad_request', message: 'Unknown action' };
   }
 }
@@ -137,7 +154,9 @@ function login_(req) {
         const token = Utilities.getUuid() + Utilities.getUuid();
         const user = { u: String(rows[i][0]), name: String(rows[i][1]) };
         cache.put('tok_' + token, JSON.stringify(user), SESSION_SECONDS);
-        return { ok: true, token: token, name: user.name, sheetUrl: ss_().getUrl() };
+        const out = { ok: true, token: token, name: user.name, sheetUrl: ss_().getUrl() };
+        try { out.data = listAll_(false).data; } catch (err) { /* the site loads the data in a second request instead */ }
+        return out;
       }
       break;
     }
@@ -162,6 +181,44 @@ function cell_(v) {
   return v == null ? '' : String(v);
 }
 
+/* ---------- cache (versioned, so any write makes the old copy unused) ---------- */
+
+function ver_() {
+  return CacheService.getScriptCache().get('ver') || '0';
+}
+
+function bumpVer_() {
+  CacheService.getScriptCache().put('ver', String(Date.now()), 21600);
+}
+
+function cacheGetBig_(key) {
+  const cache = CacheService.getScriptCache();
+  const n = Number(cache.get(key + '_n') || 0);
+  if (!n) return null;
+  const keys = [];
+  for (let i = 0; i < n; i++) keys.push(key + '_' + i);
+  const parts = cache.getAll(keys);
+  let out = '';
+  for (let i = 0; i < n; i++) {
+    const p = parts[key + '_' + i];
+    if (p == null) return null;
+    out += p;
+  }
+  return out;
+}
+
+function cachePutBig_(key, str, seconds) {
+  const size = 30000; // characters per piece, safely below the 100 KB limit even for Bengali text
+  const count = Math.ceil(str.length / size);
+  if (count > 80) return;
+  const obj = {};
+  for (let i = 0; i < count; i++) obj[key + '_' + i] = str.slice(i * size, (i + 1) * size);
+  obj[key + '_n'] = String(count);
+  try { CacheService.getScriptCache().putAll(obj, seconds); } catch (e) { /* too large: skip caching */ }
+}
+
+/* ---------- reading and writing the tracker sheets ---------- */
+
 function readSheet_(name) {
   const sh = ss_().getSheetByName(name);
   if (!sh) {
@@ -181,9 +238,17 @@ function readSheet_(name) {
   return out;
 }
 
-function listAll_() {
+function listAll_(fresh) {
+  const key = 'all_' + ver_();
+  if (!fresh) {
+    const hit = cacheGetBig_(key);
+    if (hit) {
+      try { return { ok: true, data: JSON.parse(hit) }; } catch (e) { /* rebuild below */ }
+    }
+  }
   const data = {};
   Object.keys(SHEET_SCHEMA).forEach(function (name) { data[name] = readSheet_(name); });
+  cachePutBig_(key, JSON.stringify(data), DATA_CACHE_SECONDS);
   return { ok: true, data: data };
 }
 
@@ -221,6 +286,7 @@ function write_(req, user) {
       const range = sh.getRange(sh.getLastRow() + 1, 1, 1, headers.length);
       range.setNumberFormat('@');
       range.setValues([rowOf_(headers, rec)]);
+      bumpVer_();
       return { ok: true, record: rec };
     }
 
@@ -232,6 +298,7 @@ function write_(req, user) {
 
     if (req.action === 'delete') {
       sh.deleteRow(rowNum);
+      bumpVer_();
       return { ok: true };
     }
 
@@ -245,6 +312,7 @@ function write_(req, user) {
     const range = sh.getRange(rowNum, 1, 1, headers.length);
     range.setNumberFormat('@');
     range.setValues([rowOf_(headers, rec)]);
+    bumpVer_();
     return { ok: true, record: rec };
   } finally {
     lock.releaseLock();
@@ -264,6 +332,7 @@ function writeMany_(req, user) {
     const range = sh.getRange(sh.getLastRow() + 1, 1, recs.length, headers.length);
     range.setNumberFormat('@');
     range.setValues(recs.map(function (rec) { return rowOf_(headers, rec); }));
+    bumpVer_();
     return { ok: true, records: recs };
   } finally {
     lock.releaseLock();
@@ -272,4 +341,124 @@ function writeMany_(req, user) {
 
 function clean_(v) {
   return String(v == null ? '' : v).slice(0, MAX_CELL_LENGTH);
+}
+
+/* ---------- NPS sheet (read only) ---------- */
+
+function npsBook_() {
+  try {
+    return SpreadsheetApp.openById(NPS_SHEET_ID);
+  } catch (e) {
+    throw new Error('Cannot open the NPS sheet. Run authorize() in Apps Script, and make sure the sheet is shared with the account that owns this script. (' + e.message + ')');
+  }
+}
+
+// "October", "November 2026", "Oct" -> month number 0-11. Anything else (Monthly Report, Agent details) -> -1.
+function monthOfTab_(name) {
+  const m = /^([a-z]{3})[a-z]*(\s+\d{4})?$/i.exec(String(name).trim());
+  if (!m) return -1;
+  return MONTH_KEYS.indexOf(m[1].toLowerCase());
+}
+
+// Frontend action "npsTabs": list of month tabs with their last row (used to decide what to reload).
+function npsTabs_() {
+  const book = npsBook_();
+  const tabs = [];
+  book.getSheets().forEach(function (sh) {
+    if (monthOfTab_(sh.getName()) >= 0) tabs.push({ name: sh.getName(), rows: sh.getLastRow() });
+  });
+  return { ok: true, tabs: tabs };
+}
+
+// Frontend action "npsRows": every call row of one tab, 14 fields each (no row number).
+// Past months are served from the server cache, keyed by tab name + last row, so they load instantly.
+function npsRows_(req) {
+  const name = String(req.tab || '');
+  const month = monthOfTab_(name);
+  if (month < 0) return { ok: false, error: 'bad_request', message: 'Unknown NPS tab' };
+  const book = npsBook_();
+  const sh = book.getSheetByName(name);
+  if (!sh) return { ok: false, error: 'bad_request', message: 'Unknown NPS tab' };
+  const lastRow = sh.getLastRow();
+  const key = 'nps_' + name.replace(/\W/g, '_') + '_' + lastRow;
+  const hit = cacheGetBig_(key);
+  if (hit) {
+    try { return { ok: true, tab: name, rows: JSON.parse(hit) }; } catch (e) { /* rebuild below */ }
+  }
+  const rows = [];
+  if (lastRow >= 2) {
+    const vals = sh.getRange(2, 1, lastRow - 1, 15).getDisplayValues();
+    for (let i = 0; i < vals.length; i++) {
+      const rec = npsRow_(vals[i], i + 2, month);
+      if (rec) rows.push(rec.slice(1)); // drop the row number
+    }
+  }
+  cachePutBig_(key, JSON.stringify(rows), NPS_CACHE_SECONDS);
+  return { ok: true, tab: name, rows: rows };
+}
+
+function pad2_(n) {
+  return (n < 10 ? '0' : '') + n;
+}
+
+function isoDate_(y, mo, d) {
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return '';
+  return y + '-' + pad2_(mo) + '-' + pad2_(d);
+}
+
+// Handles "1-Oct-26", "1 October 2026", "10/1/2026" (month/day, or day/month when the tab month says so) and "2026-10-01".
+function parseDate_(s, month) {
+  s = String(s || '').trim();
+  let m = /^(\d{1,2})[-\s]([A-Za-z]{3,9})[-\s,]*(\d{2,4})$/.exec(s);
+  if (m) {
+    const mi = MONTH_KEYS.indexOf(m[2].slice(0, 3).toLowerCase());
+    if (mi < 0) return '';
+    const y = Number(m[3]);
+    return isoDate_(y < 100 ? 2000 + y : y, mi + 1, Number(m[1]));
+  }
+  m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
+  if (m) {
+    const a = Number(m[1]), b = Number(m[2]);
+    let mo = a, d = b;
+    if (month >= 0 && b === month + 1 && a !== month + 1) { mo = b; d = a; }
+    return isoDate_(Number(m[3]), mo, d);
+  }
+  m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (m) return isoDate_(Number(m[1]), Number(m[2]), Number(m[3]));
+  return '';
+}
+
+function parseTime_(s) {
+  const m = /^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])?$/.exec(String(s || '').trim());
+  if (!m) return '';
+  let h = Number(m[1]);
+  const ap = m[3] ? m[3].toLowerCase() : '';
+  if (ap === 'pm' && h < 12) h += 12;
+  if (ap === 'am' && h === 12) h = 0;
+  return h > 23 ? '' : pad2_(h) + ':' + m[2];
+}
+
+function normPhone_(s) {
+  let d = String(s || '').replace(/\D/g, '');
+  if (d.length === 13 && d.indexOf('880') === 0) d = '0' + d.slice(3);
+  else if (d.length === 10 && d.charAt(0) === '1') d = '0' + d;
+  return d;
+}
+
+function txt_(v) {
+  const s = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+  return s === '#N/A' ? '' : s;
+}
+
+// Sheet columns: A Date, B Time, C SIP ID, D Skill/Campaign (left out on purpose), E Phone, F Disposition,
+// G Transfer to IVR, H Rating, I Remarks, J Review, K Shift, L Take over by, M Action, N Remarks, O Action taken.
+// Returns [rowNumber, date, time, sip, phone, disposition, ivr, rating, remarks, review, shift, takenBy, action, remarks2, actionTaken]
+// or null for headings, day separators and blank rows.
+function npsRow_(r, rowNum, month) {
+  const date = parseDate_(r[0], month);
+  if (!date) return null;
+  const phone = normPhone_(r[4]);
+  const sip = txt_(r[2]);
+  if (!phone && !sip) return null;
+  return [rowNum, date, parseTime_(r[1]), sip, phone, txt_(r[5]), txt_(r[6]), txt_(r[7]), txt_(r[8]), txt_(r[9]), txt_(r[10]), txt_(r[11]), txt_(r[12]), txt_(r[13]), txt_(r[14])];
 }
