@@ -4,9 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LD Workplace</title>
+<link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600&display=swap"></noscript>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#f3f5fa;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--brand:#2563eb;--brand-d:#1d4ed8;--soft:#eef3ff;--nav:#0f172a;--r:12px}
@@ -181,9 +183,105 @@ td.num,th.num{text-align:right}
 #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:11px 20px;border-radius:10px;font-size:13.5px;z-index:30;box-shadow:0 8px 24px rgba(15,23,42,.3)}
 #toast.ok{background:#15803d}
 #toast.err{background:#b91c1c}
+.spinner{width:22px;height:22px;border:3px solid #dbeafe;border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.nps-load{display:flex;gap:14px;align-items:center;padding:22px 24px}
+.nps-f{display:grid;gap:14px;margin-bottom:16px}
+.nps-q{position:relative}
+.nps-q svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.nps-q input{padding-left:46px;min-height:52px;font-size:16px;border-radius:12px}
+.nps-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.nps-row label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+.nps-row input[type=date]{width:auto}
+.nps-row select{width:auto;min-width:130px;max-width:200px}
+.nps-row select.on{border-color:var(--brand);background:var(--soft)}
+.nps-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:13px}
+.sumcard{display:flex;gap:22px;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;border-left:4px solid var(--brand)}
+.sum-n{font-size:44px;font-weight:700;letter-spacing:-1.5px;line-height:1}
+.sum-n span{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:6px}
+.sum-k{font-size:12px;color:var(--muted);margin-bottom:4px}
+.sum-r{flex:1;min-width:260px}
+.sum-t{font-size:20px;font-weight:600;letter-spacing:-.3px}
+.sum-m{color:var(--muted);margin:2px 0 8px}
+.sum-g{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:7px}
+.sum-g .cg-l{width:70px}
+.chip b{font-weight:600;margin-left:3px}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-bottom:14px}
+.charts .wide{grid-column:1/-1}
+.chart-t{font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.chart-t span{font-weight:400;color:var(--muted);font-size:12px}
+.hb{display:grid;grid-template-columns:minmax(80px,150px) 1fr auto;gap:10px;align-items:center;padding:5px 6px;cursor:pointer;font-size:13px;border-radius:7px}
+.hb:hover{background:#f5f8ff}
+.hb .lb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb .tr{height:10px;background:#e8edf5;border-radius:99px;overflow:hidden}
+.hb .tr i{display:block;height:100%;border-radius:99px;background:var(--tc)}
+.hb .v{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:12.5px}
+.stack{display:flex;height:10px;border-radius:99px;overflow:hidden;background:#e8edf5}
+.stack i{display:block;height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.svgbar rect.b{cursor:pointer}
+.svgbar rect.b:hover{fill:var(--brand-d)}
+.pg{display:flex;align-items:center;gap:10px;justify-content:flex-end;padding:12px 4px 0;font-size:13px;color:var(--muted)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+td.nw{white-space:nowrap}
+.phone{color:var(--brand-d);cursor:pointer;font-weight:500}
+.phone:hover{text-decoration:underline}
+.bk-sum{margin:2px 0 8px;font-size:13px;color:var(--muted)}
+.bk-sum b{color:var(--ink)}
+.bk-tbl{max-height:240px;overflow:auto;margin-bottom:6px}
 .loading{padding:70px;text-align:center;color:var(--muted)}
 .credit{font-size:12px;color:#94a3b8;text-align:center;margin-top:44px}
 .login-card .credit{margin-top:28px}
+.spin{width:16px;height:16px;border:2px solid #cbd5e1;border-top-color:var(--brand);border-radius:50%;animation:sp .8s linear infinite;display:inline-block;vertical-align:-3px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.sync{font-size:12px;color:#8b9ab8;margin-bottom:8px;min-height:16px}
+.flt{display:grid;gap:12px;margin-bottom:14px}
+.bigsearch{position:relative}
+.bigsearch svg{position:absolute;left:14px;top:13px;color:var(--muted)}
+.bigsearch input{padding-left:44px;min-height:46px;font-size:15px;border-radius:10px}
+.frow{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.frow .field{margin:0;flex:0 0 150px}
+.presets{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:2px}
+.actbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+.actbar .cg-l{margin-right:4px}
+.fchip{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;padding:4px 6px 4px 12px;font-size:13px;font-weight:500;color:var(--tc);background:var(--tb);cursor:pointer}
+.fchip b{font-weight:600}
+.fchip i{font-style:normal;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.7);display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin:14px 0}
+.panel h3{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.panel h3 span{font-weight:400;font-size:12px;color:var(--muted)}
+.bi{display:grid;grid-template-columns:minmax(70px,38%) 1fr 52px;gap:8px;align-items:center;width:100%;border:0;background:none;padding:6px 8px;border-radius:8px;cursor:pointer;text-align:left;font-size:13px}
+.bi:hover{background:#f1f5f9}
+.bi.on{background:var(--tb)}
+.bi .bn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bi .bb{height:8px;background:#e8edf5;border-radius:99px;overflow:hidden}
+.bi .bb i{display:block;height:100%;background:var(--tc);border-radius:99px}
+.bi .bc{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.chart{width:100%;height:auto;display:block}
+.chart rect.b{fill:var(--brand);cursor:pointer}
+.chart rect.b:hover{fill:var(--brand-d)}
+.chart text{fill:#64748b;font-size:11px}
+.sumcard{display:flex;gap:28px;flex-wrap:wrap;align-items:center;margin:0 0 14px;border-left:5px solid var(--tc)}
+.sumcard .l{font-size:12.5px;color:var(--muted)}
+.sumcard .big{font-size:26px;font-weight:700;letter-spacing:-.4px;line-height:1.2}
+.sumcard .m{font-size:12.5px;color:var(--muted)}
+.sumcard .sp{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.rt td{white-space:nowrap}
+.rt td.wrap{max-width:230px;overflow:hidden;text-overflow:ellipsis}
+.rt a.pl{text-decoration:none;font-weight:500}
+.rt a.pl:hover{text-decoration:underline}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;flex-wrap:wrap}
+.detail{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+.detail .l{font-size:12px;color:var(--muted)}
+.detail .v{font-size:14px;word-break:break-word;min-height:20px}
+.detail .wide{grid-column:1/-1}
+.bulkprev{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:4px}
+.bulkprev table td{padding:7px 14px}
+.bsum{font-size:13px;margin:12px 0 6px}
+.bsum .w{color:#b45309}
+.linkbtn{background:none;border:0;padding:0;color:var(--brand);cursor:pointer;text-decoration:underline;font-size:12.5px}
 
 @media(max-width:900px){
   #login{grid-template-columns:1fr}
@@ -237,6 +335,7 @@ td.num,th.num{text-align:right}
     <div class="brand"><div class="mark">LD</div><div><b>LD Workplace</b><span>Learning and Development</span></div></div>
     <nav id="nav"></nav>
     <div class="side-foot">
+      <div class="sync" id="syncTxt"></div>
       <div class="who"><span class="av t-blue" id="whoAv"></span><span id="who"></span></div>
       <div class="links">
         <a id="sheetLink" href="#" target="_blank" rel="noopener" hidden>Open Google Sheet</a>
@@ -293,12 +392,15 @@ const ICONS = {
   download: '<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
   copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/>',
   print: '<path d="M7 9V3h10v6M7 17H5a2 2 0 01-2-2v-4a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/>',
-  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  nps: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8.5 11.5l2 2 3.5-4"/>',
+  refresh: '<path d="M20 11a8 8 0 00-14.5-4M4 4v4h4M4 13a8 8 0 0014.5 4M20 20v-4h-4"/>'
 };
 const icon = (n, s) => '<svg class="ico" width="' + (s || 18) + '" height="' + (s || 18) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[n] + '</svg>';
 
 const TONES = ['blue', 'violet', 'green', 'amber', 'red', 'teal', 'indigo', 'orange', 'pink', 'slate'];
-const FIXED = { 'Group session': 'blue', '1-to-1 session': 'violet', 'Live call': 'red', 'Recorded call': 'teal', 'Morning LD': 'amber', 'Evening LD': 'indigo', 'Best performer': 'green', 'Weak agent': 'orange', 'Under performer': 'red', 'Upcoming': 'slate', 'Ongoing': 'blue', 'Completed': 'green', 'Handed over': 'green', 'In training': 'blue', 'Left': 'slate', 'Planned': 'slate', 'In progress': 'amber', 'Done': 'green', 'Document': 'blue', 'Slides': 'orange', 'Video': 'red', 'Sheet': 'green', 'Other': 'slate' };
+const FIXED = { 'Good': 'green', 'Bad': 'red', 'No response': 'slate', 'No need': 'slate', '1': 'violet', '2': 'blue', '3': 'teal', 'Morning': 'amber', 'Evening': 'indigo', 'Night': 'slate', 'Group session': 'blue', '1-to-1 session': 'violet', 'Live call': 'red', 'Recorded call': 'teal', 'Morning LD': 'amber', 'Evening LD': 'indigo', 'Best performer': 'green', 'Weak agent': 'orange', 'Under performer': 'red', 'Upcoming': 'slate', 'Ongoing': 'blue', 'Completed': 'green', 'Handed over': 'green', 'In training': 'blue', 'Left': 'slate', 'Planned': 'slate', 'In progress': 'amber', 'Done': 'green', 'Document': 'blue', 'Slides': 'orange', 'Video': 'red', 'Sheet': 'green', 'Other': 'slate', 'Morning': 'amber', 'Evening': 'indigo', 'Night': 'violet' };
 function tone(v) {
   if (FIXED[v]) return FIXED[v];
   let h = 0; String(v).split('').forEach(c => { h = (h * 31 + c.charCodeAt(0)) >>> 0; });
@@ -318,7 +420,7 @@ const LISTS = {
   MaterialType: { title: 'Material types', desc: 'Kinds of training material.', defaults: ['Document', 'Slides', 'Video', 'Sheet', 'Other'] }
 };
 
-const state = { token: null, name: '', sheetUrl: '', data: {}, filters: {}, loadedAt: 0, month: monthOf(today()), teamPeriod: 'week', teamShift: '' };
+const state = { token: null, name: '', sheetUrl: '', data: {}, filters: {}, loadedAt: 0, month: monthOf(today()), teamPeriod: 'week', teamShift: '', wseq: 0, nps: { byTab: {}, order: [], rows: null, loadedAt: 0, error: '', promise: null } };
 
 function opts(list) {
   const rows = (state.data.Settings || []).filter(r => r.List === list).map(r => r.Value).filter(Boolean);
@@ -345,7 +447,7 @@ const MODULES = {
     cols: [{ k: 'Batch' }, { k: 'Status', pill: true }, { k: 'StartDate', label: 'Start' }, { k: 'EndDate', label: 'End' }, { k: 'PlannedGroup', label: 'Group planned', num: true }, { k: 'Planned1to1', label: '1-to-1 planned', num: true }, { k: 'Topics' }]
   },
   agents: {
-    sheet: 'Agents', title: 'Agents', icon: 'agents', tone: 'violet', addLabel: 'Add agent', repeat: true,
+    sheet: 'Agents', title: 'Agents', icon: 'agents', tone: 'violet', addLabel: 'Add agent', repeat: true, bulk: true, bulk: true,
     sub: 'Everyone in training, grouped by batch, with their training feedback.',
     empty: ['No agents yet', 'Add the agents of a batch so you can pick them in sessions and call reviews.'],
     chips: [{ k: 'Status', label: 'Status', values: () => opts('AgentStatus') }],
@@ -446,7 +548,7 @@ const MODULES = {
 const NAV = [
   ['Overview', [['dashboard', 'Dashboard', 'dashboard'], ['team', 'Team board', 'team']]],
   ['Training', [['batches', 'Batches', 'batches'], ['agents', 'Agents', 'agents'], ['sessions', 'Session log', 'sessions'], ['materials', 'Training materials', 'materials']]],
-  ['Quality', [['calls', 'Call review', 'calls'], ['performance', 'Performance', 'performance'], ['handover', 'QA handover', 'handover']]],
+  ['Quality', [['calls', 'Call review', 'calls'], ['nps', 'NPS search', 'nps'], ['performance', 'Performance', 'performance'], ['handover', 'QA handover', 'handover']]],
   ['Reports', [['report', 'Monthly report', 'report']]],
   ['Manage', [['settings', 'Options', 'settings']]]
 ];
@@ -472,11 +574,50 @@ function demoDB() {
   localStorage.setItem('ld_demo2', JSON.stringify(db));
   return db;
 }
+function demoNps() {
+  if (demoNps.c) return demoNps.c;
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647, pick = a => a[Math.floor(rnd() * a.length)];
+  const phones = Array.from({ length: 140 }, () => '01' + pick(['3', '5', '6', '7', '8', '9']) + String(10000000 + Math.floor(rnd() * 89999999)));
+  const sips = Array.from({ length: 30 }, (_, i) => String(1030 + i * 5)), officers = ['Shawan Miraj', 'Md Ismail Shikder', 'Ashaka Alahi Nirjhor', 'Md. Shoaib Sarker'];
+  const rms = [['Caller Wrong Rating', 'Good'], ['Caller Wrong Rating', 'Good'], ['Unavailable', 'No response'], ['Operational Error', 'Bad'], ['Agent issue', 'Bad'], ['No Need', 'No need']];
+  const mk = (mon, days, n) => Array.from({ length: n }, () => {
+    const day = 1 + Math.floor(rnd() * days), h = Math.floor(rnd() * 24), r = pick(rms), ph = rnd() < .35 ? phones[Math.floor(rnd() * 12)] : pick(phones);
+    return ['2026-' + pad(mon) + '-' + pad(day), (h % 12 || 12) + ':' + pad(Math.floor(rnd() * 60)) + (h < 12 ? ' AM' : ' PM'), pick(sips), ph, pick(['GIF', 'DI', 'DIF', 'CQ', 'INFO']), 'Yes', pick(['1', '1', '1', '2', '2', '3']), r[0], r[1], h < 6 ? 'Night' : h < 14 ? 'Morning' : 'Evening', pick(officers), '', '', ''];
+  });
+  return (demoNps.c = { October: mk(10, 31, 420), November: mk(11, 21, 300) });
+}
+let _demoNpsData = null;
+function demoNps() {
+  if (_demoNpsData) return _demoNpsData;
+  let s = 20260101;
+  const rnd = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const sips = ['1137', '1172', '1197', '1164', '1094', '1049', '1141', '1086', '1070', '1018'];
+  const names = ['Sajid Ahmed', 'Md.Naimul Hasan', 'Anas Ebena Khair', 'Tasen Ar-Rafiu', 'Saiful Islam Sowrav', 'Md Mahfujur Rahman', 'Taif Ahmed', 'MD Imran Khan', 'Prosenjit Halder', 'Md. Mahedi Hasan Himel'];
+  const agents = {}; sips.forEach((x, i) => { agents[x] = names[i]; });
+  const pool = []; for (let i = 0; i < 260; i++) pool.push('01' + String(Math.floor(rnd() * 1e9)).padStart(9, '0'));
+  const disp = ['INFO', 'GIF', 'DI', 'DIF', 'DEL', 'PIF', 'CQ'];
+  const by = ['Md Ismail Shikder', 'Shawan Miraj', 'Ashaka Alahi Nirjhor', 'Md. Shoaib Sarker'];
+  const rem = [['Caller Wrong Rating', 'Good'], ['Unavailable', 'No response'], ['Operational Error', 'Bad'], ['No Need', 'No need'], ['Agent issue', 'Bad']];
+  const mk = (mi, name, days) => {
+    const rows = []; let r = 3;
+    for (let d = 1; d <= days; d++) for (let k = 0; k < 36; k++) {
+      const h = Math.floor(rnd() * 24), m = Math.floor(rnd() * 60), q = rnd();
+      const rating = q < .72 ? '1' : q < .9 ? '2' : '3', rr = pick(rem), filled = rnd() < .8;
+      rows.push([r++, '2026-' + pad(mi) + '-' + pad(d), pad(h) + ':' + pad(m), pick(sips), pool[Math.floor(Math.pow(rnd(), 2) * pool.length)], pick(disp), 'Yes', rating, filled ? rr[0] : '', filled ? rr[1] : '', h < 8 ? 'Night' : h < 16 ? 'Morning' : 'Evening', filled ? pick(by) : '', filled ? 'No Need' : '', '', '']);
+    }
+    return { name: name, lastRow: r - 1, rows: rows };
+  };
+  _demoNpsData = { agents: agents, tabs: [mk(10, 'October', 31), mk(11, 'November', 20)] };
+  return _demoNpsData;
+}
 function demoApi(action, p) {
   const db = demoDB(), save = () => localStorage.setItem('ld_demo2', JSON.stringify(db));
   SHEETS.forEach(s => { if (!db[s]) db[s] = []; });
-  if (action === 'login') return p.username === 'demo' && p.password === 'demo' ? { ok: true, token: 'demo', name: 'Ismail', sheetUrl: '' } : { ok: false, message: 'Wrong username or password' };
+  if (action === 'login') return p.username === 'demo' && p.password === 'demo' ? { ok: true, token: 'demo', name: 'Ismail', sheetUrl: '', data: db } : { ok: false, message: 'Wrong username or password' };
   if (action === 'listAll') return { ok: true, data: db };
+  if (action === 'npsTabs') { const d = demoNps(); return { ok: true, tabs: Object.keys(d).map(k => ({ name: k, rows: d[k].length + 3 })) }; }
+  if (action === 'npsRows') { const d = demoNps(); return d[p.tab] ? { ok: true, tab: p.tab, rows: d[p.tab] } : { ok: false, message: 'Tab not found' }; }
   const list = db[p.sheet];
   const mkRec = row => Object.assign({ ID: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), CreatedBy: 'Ismail', CreatedAt: new Date().toISOString() }, row);
   if (action === 'add') { const rec = mkRec(p.row); list.push(rec); save(); return { ok: true, record: rec }; }
@@ -486,7 +627,13 @@ function demoApi(action, p) {
   return { ok: false, message: 'Unknown action' };
 }
 
+const WRITES = { add: 1, addMany: 1, update: 1, delete: 1 };
 async function api(action, payload) {
+  const res = await rawApi(action, payload);
+  if (WRITES[action]) state.wseq++;
+  return res;
+}
+async function rawApi(action, payload) {
   if (!CONFIG.API_URL) { const r = demoApi(action, payload || {}); if (!r.ok) throw new Error(r.message); return r; }
   let data;
   try {
@@ -504,10 +651,14 @@ async function api(action, payload) {
   return data;
 }
 
+function applyAll(data) {
+  SHEETS.forEach(s => { state.data[s] = data[s] || []; });
+  state.loadedAt = Date.now();
+  cacheSave();
+}
 async function loadAll() {
   const res = await api('listAll');
-  SHEETS.forEach(s => { state.data[s] = res.data[s] || []; });
-  state.loadedAt = Date.now();
+  applyAll(res.data);
 }
 
 const batchNames = () => (state.data.Batches || []).map(b => b.Batch).filter(Boolean);
@@ -549,7 +700,7 @@ function viewModule(key) {
     '<div class="chipgroup"><span class="cg-l">' + esc(c.label) + '</span><button class="chip' + (!f.chips[c.k] ? ' on' : '') + '" data-ck="' + c.k + '" data-cv="">All</button>' +
     c.values().map(v => '<button class="chip' + (f.chips[c.k] === v ? ' on' : '') + '" data-ck="' + c.k + '" data-cv="' + esc(v) + '">' + esc(v) + '</button>').join('') + '</div>').join('');
   $('#view').innerHTML =
-    head(m.title, m.sub, m.icon, m.tone, '<button class="btn" id="addBtn">' + icon('plus', 17) + esc(m.addLabel) + '</button>') +
+    head(m.title, m.sub, m.icon, m.tone, (m.bulk ? '<button class="btn soft" id="bulkBtn">' + icon('agents', 17) + 'Add many agents</button>' : '') + '<button class="btn" id="addBtn">' + icon('plus', 17) + esc(m.addLabel) + '</button>') +
     '<div class="toolbar">' +
     '<input type="search" id="q" placeholder="Search anything" value="' + esc(f.q) + '">' +
     (hasBatch ? '<select id="fb"><option value="">All batches</option>' + batchNames().map(b => '<option value="' + esc(b) + '"' + (f.batch === b ? ' selected' : '') + '>' + esc(b) + '</option>').join('') + '</select>' : '') +
@@ -559,6 +710,7 @@ function viewModule(key) {
     (chips ? '<div class="chiprow">' + chips + '</div>' : '') +
     '<div class="table-wrap" id="tbl"></div>';
   $('#addBtn').onclick = () => openForm(key);
+  if (m.bulk) $('#bulkBtn').onclick = openBulkAgents;
   $('#q').oninput = e => { f.q = e.target.value; drawTable(key); };
   if (hasBatch) $('#fb').onchange = e => { f.batch = e.target.value; drawTable(key); };
   if (m.dateKey) $('#fm').onchange = e => { f.month = e.target.value; drawTable(key); };
@@ -695,7 +847,7 @@ async function submitForm(key, id, again) {
     const res = await api(id ? 'update' : 'add', { sheet: m.sheet, id: id, row: row });
     const list = state.data[m.sheet];
     if (id) { const i = list.findIndex(r => r.ID === id); if (i > -1) list[i] = res.record; } else list.push(res.record);
-    state.loadedAt = Date.now();
+    state.loadedAt = Date.now(); saveCacheSoon();
     if (again) {
       toast('Saved. Ready for the next one.', 'ok');
       m.fields.forEach(fl => { if (!fl.sticky) { const el = $('#f_' + fl.k); if (el && el.tagName !== 'SELECT') el.value = ''; } });
@@ -712,7 +864,7 @@ async function removeRecord(key, id) {
   try {
     await api('delete', { sheet: m.sheet, id: id });
     state.data[m.sheet] = state.data[m.sheet].filter(r => r.ID !== id);
-    state.loadedAt = Date.now(); closeForm(); toast('Entry deleted', 'ok'); route(true);
+    state.loadedAt = Date.now(); saveCacheSoon(); closeForm(); toast('Entry deleted', 'ok'); route(true);
   } catch (e) { $('#formErr').textContent = e.message; }
 }
 
@@ -882,7 +1034,7 @@ async function addOption(list, value) {
     await seedIfNeeded(list);
     const res = await api('add', { sheet: 'Settings', row: { List: list, Value: v } });
     state.data.Settings.push(res.record);
-    toast('Option added', 'ok'); viewSettings();
+    saveCacheSoon(); toast('Option added', 'ok'); viewSettings();
   } catch (e) { toast(e.message, 'err'); }
 }
 async function removeOption(list, val) {
@@ -892,7 +1044,7 @@ async function removeOption(list, val) {
     await seedIfNeeded(list);
     const row = state.data.Settings.find(r => r.List === list && r.Value === val);
     if (row) { await api('delete', { sheet: 'Settings', id: row.ID }); state.data.Settings = state.data.Settings.filter(r => r.ID !== row.ID); }
-    toast('Option removed', 'ok'); viewSettings();
+    saveCacheSoon(); toast('Option removed', 'ok'); viewSettings();
   } catch (e) { toast(e.message, 'err'); }
 }
 function viewSettings() {
@@ -907,44 +1059,472 @@ function viewSettings() {
   document.querySelectorAll('.addrow').forEach(f => { f.onsubmit = e => { e.preventDefault(); addOption(f.dataset.list, f.querySelector('input').value); }; });
 }
 
+/* ---------- NPS search (read only, data comes from the NPS Google Sheet) ---------- */
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const fmtDay = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ''); return m ? m[3] + ' ' + MON[+m[2] - 1] + ' ' + m[1] : (iso || ''); };
+const fmtN = n => Number(n).toLocaleString('en-US');
+const NPS_COLS = [['d', 'Date'], ['t', 'Time'], ['sip', 'SIP ID'], ['ph', 'Phone number'], ['disp', 'Disposition'], ['ivr', 'Transfer to IVR'], ['rt', 'Rating'], ['rm', 'Remarks'], ['rv', 'Review'], ['sh', 'Shift'], ['by', 'Taken by'], ['ac', 'Action'], ['ar', 'Action remarks'], ['tk', 'Action taken remarks']];
+const NPS_KEYS = NPS_COLS.map(c => c[0]);
+const NPS_FILTERS = [['sh', 'All shifts'], ['by', 'All officers'], ['rv', 'All reviews'], ['rt', 'All ratings'], ['disp', 'All dispositions'], ['rm', 'All remarks'], ['ac', 'All actions']];
+const NPS_PAGE = 50;
+const npsF = { q: '', from: '', to: '', sh: '', by: '', rv: '', rt: '', disp: '', rm: '', ac: '', sort: 'd', dir: -1, page: 0 };
+const rvKind = v => { const k = String(v).toLowerCase(); return k === 'good' ? 'good' : k === 'bad' ? 'bad' : k === 'no response' ? 'nr' : 'other'; };
+const RV_COL = { good: '#16a34a', bad: '#dc2626', nr: '#f59e0b', other: '#94a3b8' };
+const RT_TONE = { '1': 'red', '2': 'orange', '3': 'amber', '4': 'teal', '5': 'green' };
+const ratePill = v => v ? '<span class="pill t-' + (RT_TONE[v] || 'slate') + '">' + esc(v) + '</span>' : '';
+const rvPill = v => v ? '<span class="pill t-' + ({ good: 'green', bad: 'red', 'no response': 'amber' }[String(v).toLowerCase()] || 'slate') + '">' + esc(v) + '</span>' : '';
+
+function npsBuild(raw) {
+  return raw.map(a => {
+    const r = {}; NPS_KEYS.forEach((k, i) => { r[k] = a[i] == null ? '' : String(a[i]); });
+    const m = /^(\d{1,2}):(\d{2})\s*([AaPp])?/.exec(r.t);
+    r.tm = m ? (m[3] ? (+m[1] % 12) + (/p/i.test(m[3]) ? 12 : 0) : +m[1]) * 60 + +m[2] : -1;
+    r.hay = [r.sip, r.ph, r.disp, r.rt, r.rm, r.rv, r.sh, r.by, r.ac, r.ar, r.tk].join(' ').toLowerCase();
+    return r;
+  });
+}
+function npsRebuild() {
+  const N = state.nps;
+  N.rows = [].concat.apply([], N.order.filter(n => N.byTab[n]).map(n => npsBuild(N.byTab[n].rows)));
+}
+function npsSave() {
+  const N = state.nps;
+  try { sessionStorage.setItem('ld_nps', JSON.stringify({ u: state.name, order: N.order, byTab: N.byTab, ts: N.loadedAt })); } catch (e) { try { sessionStorage.removeItem('ld_nps'); } catch (e2) {} }
+}
+function npsRestore() {
+  try {
+    const c = JSON.parse(sessionStorage.getItem('ld_nps') || 'null'), N = state.nps;
+    if (!c || c.u !== state.name || !c.byTab) return;
+    N.byTab = c.byTab; N.order = c.order || Object.keys(c.byTab); N.loadedAt = c.ts || 0; npsRebuild();
+  } catch (e) {}
+}
+// Past months are reused from the browser cache; only the newest tab (or a tab whose row count changed) is fetched again.
+function loadNps(force) {
+  const N = state.nps;
+  if (N.promise) return N.promise;
+  N.error = '';
+  N.promise = (async () => {
+    try {
+      const t = await api('npsTabs');
+      const names = t.tabs.map(x => x.name), last = names[names.length - 1];
+      const need = t.tabs.filter(x => force || x.name === last || !N.byTab[x.name] || N.byTab[x.name].n !== x.rows);
+      const res = await Promise.all(need.map(x => api('npsRows', { tab: x.name })));
+      res.forEach((r, i) => { N.byTab[need[i].name] = { n: need[i].rows, rows: r.rows }; });
+      Object.keys(N.byTab).forEach(k => { if (names.indexOf(k) < 0) delete N.byTab[k]; });
+      N.order = names; npsRebuild(); N.loadedAt = Date.now(); npsSave();
+    } catch (e) { N.error = e.message; }
+    N.promise = null;
+  })();
+  return N.promise;
+}
+
+const tally = (rows, k) => { const m = new Map(); rows.forEach(r => { const v = r[k]; if (v !== '') m.set(v, (m.get(v) || 0) + 1); }); return [...m.entries()].sort((a, b) => b[1] - a[1]); };
+
+function npsFilter() {
+  const F = npsF, q = F.q.trim(), digits = q.replace(/\D/g, '');
+  const isNum = !!q && /^[\d\s+\-()]+$/.test(q) && digits.length > 0;
+  let qd = digits;
+  if (isNum && digits.length > 5) { if (qd.indexOf('880') === 0 && qd.length >= 12) qd = '0' + qd.slice(3); else if (qd.length === 10 && qd.charAt(0) === '1') qd = '0' + qd; }
+  const words = !isNum && q ? q.toLowerCase().split(/\s+/) : [];
+  const sipQ = digits.replace(/^0+/, '');
+  const keys = ['sh', 'by', 'rv', 'rt', 'disp', 'rm', 'ac'].filter(k => F[k]);
+  const rows = state.nps.rows.filter(r => {
+    if (F.from && (!r.d || r.d < F.from)) return false;
+    if (F.to && (!r.d || r.d > F.to)) return false;
+    for (let i = 0; i < keys.length; i++) { const k = keys[i], v = F[k]; if (v === '__blank__' ? r[k] !== '' : r[k] !== v) return false; }
+    if (isNum) return digits.length <= 5 ? (r.sip === digits || r.sip === sipQ) : r.ph.indexOf(qd) > -1;
+    for (let i = 0; i < words.length; i++) if (r.hay.indexOf(words[i]) < 0) return false;
+    return true;
+  });
+  return { rows: rows, isNum: isNum, digits: digits, q: q };
+}
+const npsAnyFilter = () => !!(npsF.q || npsF.from || npsF.to || NPS_FILTERS.some(f => npsF[f[0]]));
+
+function npsSelectOptions(k) {
+  const vals = tally(state.nps.rows, k).map(x => x[0]);
+  if (k === 'rt') vals.sort((a, b) => parseFloat(a) - parseFloat(b));
+  if (k === 'sh') { const o = ['Morning', 'Evening', 'Night'], ix = v => o.indexOf(v) < 0 ? 9 : o.indexOf(v); vals.sort((a, b) => ix(a) - ix(b)); }
+  if (k === 'by') vals.sort();
+  return { vals: vals, blank: state.nps.rows.some(r => r[k] === '') };
+}
+function npsSelectInner(k, label) {
+  const o = npsSelectOptions(k), cur = npsF[k];
+  return '<option value="">' + esc(label) + '</option>' + o.vals.map(v => '<option value="' + esc(v) + '"' + (cur === v ? ' selected' : '') + '>' + esc(v) + '</option>').join('') + (o.blank ? '<option value="__blank__"' + (cur === '__blank__' ? ' selected' : '') + '>(blank)</option>' : '');
+}
+
+function viewNps() {
+  $('#view').innerHTML = head('NPS search', 'Look up any number, SIP ID or officer in the NPS call list. Read only, the data comes straight from your NPS Google Sheet.', 'nps', 'amber',
+    '<span class="count" id="npsStamp"></span><button class="btn ghost small" id="npsRefresh">' + icon('refresh', 15) + 'Refresh</button>') + '<div id="npsBody"></div>';
+  $('#npsRefresh').onclick = () => npsLoadFlow(true);
+  const N = state.nps;
+  if (N.rows && N.rows.length) { npsPaint(); if (Date.now() - N.loadedAt > 300000) npsLoadFlow(false); }
+  else npsLoadFlow(false);
+}
+
+async function npsLoadFlow(force) {
+  const N = state.nps, had = !!(N.rows && N.rows.length);
+  const body = $('#npsBody'); if (!body) return;
+  if (!had) body.innerHTML = '<div class="card nps-load"><div class="spinner"></div><div><b>Loading NPS calls from Google Sheets</b><div class="sub">The first load takes a few seconds. After that this page opens instantly.</div></div></div>';
+  else { const s = $('#npsStamp'); if (s) s.textContent = 'Updating...'; }
+  await loadNps(force);
+  if (location.hash !== '#/nps' || !$('#npsBody')) return;
+  if (N.error) {
+    if (!had) $('#npsBody').innerHTML = '<div class="card"><div class="empty"><b>Could not load the NPS data</b>' + esc(N.error) + '<br><button class="btn" id="npsRetry">' + icon('refresh', 16) + 'Try again</button></div></div>';
+    else { toast(N.error, 'err'); npsStamp(); }
+    const rb = $('#npsRetry'); if (rb) rb.onclick = () => npsLoadFlow(true);
+    return;
+  }
+  if (!N.rows.length) { $('#npsBody').innerHTML = '<div class="card"><div class="empty"><b>No NPS calls found</b>The NPS sheet has no call rows yet.</div></div>'; return; }
+  if (force) toast('NPS data refreshed', 'ok');
+  npsPaint();
+}
+function npsStamp() {
+  const s = $('#npsStamp'), N = state.nps; if (!s) return;
+  const d = new Date(N.loadedAt);
+  s.textContent = N.rows ? fmtN(N.rows.length) + ' calls · updated ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) : '';
+}
+
+function npsPaint() {
+  if (location.hash !== '#/nps' || !$('#npsBody')) return;
+  const N = state.nps;
+  if (!$('#npsFilters')) {
+    const pre = [['today', 'Today'], ['yest', 'Yesterday'], ['7d', 'Last 7 days'], ['month', 'This month'], ['lmonth', 'Last month'], ['all', 'All time']];
+    $('#npsBody').innerHTML =
+      '<div class="card nps-f" id="npsFilters">' +
+      '<div class="nps-q">' + icon('search', 20) + '<input id="npsQ" type="search" placeholder="Search a phone number, SIP ID, officer name or remarks" autocomplete="off" value="' + esc(npsF.q) + '"></div>' +
+      '<div class="nps-row"><div><label for="npsFrom">From</label><input type="date" id="npsFrom" value="' + esc(npsF.from) + '"></div><div><label for="npsTo">To</label><input type="date" id="npsTo" value="' + esc(npsF.to) + '"></div>' +
+      '<div class="seg" id="npsPre">' + pre.map(p => '<button type="button" data-pre="' + p[0] + '">' + p[1] + '</button>').join('') + '</div></div>' +
+      '<div class="nps-row">' + NPS_FILTERS.map(f => '<select data-nf="' + f[0] + '" class="' + (npsF[f[0]] ? 'on' : '') + '" aria-label="' + esc(f[1]) + '">' + npsSelectInner(f[0], f[1]) + '</select>').join('') +
+      '<button class="btn ghost small" id="npsClear" type="button">Clear filters</button><span class="grow"></span><button class="btn ghost small" id="npsCsv" type="button">' + icon('download', 15) + 'Export CSV</button></div></div>' +
+      '<div id="npsOut"></div>';
+    npsBind();
+  } else {
+    document.querySelectorAll('[data-nf]').forEach(sel => {
+      const f = NPS_FILTERS.find(x => x[0] === sel.dataset.nf), sig = npsSelectOptions(f[0]);
+      const have = Array.from(sel.options).map(o => o.value).filter(v => v && v !== '__blank__').join('|');
+      if (have !== sig.vals.join('|')) sel.innerHTML = npsSelectInner(f[0], f[1]);
+    });
+  }
+  npsStamp(); npsOut();
+}
+
+function npsRange(p) {
+  const t = today(), y = new Date().getFullYear(), m = new Date().getMonth();
+  const ms = (yy, mm) => isoDate(new Date(yy, mm, 1)), me = (yy, mm) => isoDate(new Date(yy, mm + 1, 0));
+  return { today: [t, t], yest: [daysAgo(1), daysAgo(1)], '7d': [daysAgo(6), t], month: [ms(y, m), me(y, m)], lmonth: [ms(y, m - 1), me(y, m - 1)], all: ['', ''] }[p];
+}
+function npsSync() {
+  $('#npsQ').value = npsF.q; $('#npsFrom').value = npsF.from; $('#npsTo').value = npsF.to;
+  document.querySelectorAll('[data-nf]').forEach(s => { s.value = npsF[s.dataset.nf]; s.classList.toggle('on', !!npsF[s.dataset.nf]); });
+}
+function npsBind() {
+  let t;
+  $('#npsQ').oninput = e => { clearTimeout(t); t = setTimeout(() => { npsF.q = e.target.value; npsF.page = 0; npsOut(); }, 140); };
+  $('#npsFrom').onchange = e => { npsF.from = e.target.value; npsF.page = 0; npsOut(); };
+  $('#npsTo').onchange = e => { npsF.to = e.target.value; npsF.page = 0; npsOut(); };
+  document.querySelectorAll('[data-nf]').forEach(s => { s.onchange = () => { npsF[s.dataset.nf] = s.value; s.classList.toggle('on', !!s.value); npsF.page = 0; npsOut(); }; });
+  document.querySelectorAll('[data-pre]').forEach(b => { b.onclick = () => { const r = npsRange(b.dataset.pre); npsF.from = r[0]; npsF.to = r[1]; npsF.page = 0; npsSync(); npsOut(); }; });
+  $('#npsClear').onclick = () => { npsF.q = ''; npsF.from = ''; npsF.to = ''; NPS_FILTERS.forEach(f => { npsF[f[0]] = ''; }); npsF.page = 0; npsSync(); npsOut(); };
+  $('#npsCsv').onclick = npsCsv;
+  $('#npsOut').onclick = e => {
+    const el = e.target.closest('[data-set],[data-q],[data-day],[data-sort],[data-page]'); if (!el) return;
+    const d = el.dataset;
+    if (d.set) { const i = d.set.indexOf(':'), k = d.set.slice(0, i), v = d.set.slice(i + 1); npsF[k] = npsF[k] === v ? '' : v; npsF.page = 0; }
+    else if (d.q) { npsF.q = d.q; npsF.page = 0; }
+    else if (d.day) { const p = d.day.split(':'); npsF.from = p[0]; npsF.to = p[1]; npsF.page = 0; }
+    else if (d.sort) { if (npsF.sort === d.sort) npsF.dir = -npsF.dir; else { npsF.sort = d.sort; npsF.dir = d.sort === 'd' ? -1 : 1; } npsF.page = 0; }
+    else if (d.page) npsF.page += d.page === 'next' ? 1 : -1;
+    npsSync(); npsOut(d.page ? 'keep' : '');
+    if (d.q) { const q = $('#npsQ'); if (q) window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  };
+}
+
+function npsCsv() {
+  const fl = npsFilter(), q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const lines = [NPS_COLS.map(c => q(c[1])).join(',')].concat(fl.rows.map(r => NPS_KEYS.map(k => k === 'ph' ? '="' + r[k] + '"' : q(r[k])).join(',')));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'NPS-' + today() + '.csv'; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function hbars(items, field, tn, max) {
+  if (!items.length) return '<div class="none">No data</div>';
+  const top = max || items[0][1], total = items.reduce((a, x) => a + x[1], 0);
+  return items.map(x => '<div class="hb t-' + tn + '" data-set="' + field + ':' + esc(x[0]) + '" title="Filter by ' + esc(x[0]) + '"><span class="lb">' + esc(x[0]) + '</span><span class="tr"><i style="width:' + Math.max(2, Math.round(x[1] / top * 100)) + '%"></i></span><span class="v">' + fmtN(x[1]) + ' · ' + Math.round(x[1] / total * 100) + '%</span></div>').join('');
+}
+
+function npsDayChart(rows) {
+  const dated = rows.filter(r => r.d);
+  if (!dated.length) return '<div class="none">No dated calls</div>';
+  const days = new Map(); dated.forEach(r => days.set(r.d, (days.get(r.d) || 0) + 1));
+  const keys = [...days.keys()].sort(), lo = keys[0], hi = keys[keys.length - 1];
+  const span = Math.round((Date.parse(hi + 'T00:00:00Z') - Date.parse(lo + 'T00:00:00Z')) / 864e5) + 1;
+  let items = [];
+  if (span <= 62) {
+    for (let i = 0; i < span; i++) { const d = new Date(Date.parse(lo + 'T00:00:00Z') + i * 864e5), iso = d.toISOString().slice(0, 10); items.push({ k: iso, from: iso, to: iso, v: days.get(iso) || 0, lb: d.getUTCDate() === 1 || i === 0 ? d.getUTCDate() + ' ' + MON[d.getUTCMonth()] : String(d.getUTCDate()), tt: fmtDay(iso) }); }
+  } else {
+    const mm = new Map(); days.forEach((v, k) => { const m = k.slice(0, 7); mm.set(m, (mm.get(m) || 0) + v); });
+    items = [...mm.keys()].sort().map(m => { const y = +m.slice(0, 4), mo = +m.slice(5, 7); return { k: m, from: m + '-01', to: isoDate(new Date(y, mo, 0)), v: mm.get(m), lb: MON[mo - 1] + ' ' + String(y).slice(2), tt: MON[mo - 1] + ' ' + y }; });
+  }
+  const W = 640, H = 190, pl = 38, pb = 26, pt = 10, max = Math.max.apply(null, items.map(i => i.v)) || 1, n = items.length, bw = (W - pl - 6) / n, step = Math.ceil(n / 12);
+  let s = '<svg class="svgbar" width="100%" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Calls per day">';
+  [0, .5, 1].forEach(f => { const y = pt + (H - pb - pt) * (1 - f); s += '<line x1="' + pl + '" x2="' + W + '" y1="' + y + '" y2="' + y + '" stroke="#e2e8f0"/><text x="' + (pl - 6) + '" y="' + (y + 4) + '" text-anchor="end" font-size="11" fill="#64748b">' + Math.round(max * f) + '</text>'; });
+  items.forEach((it, i) => {
+    const h = (H - pb - pt) * it.v / max, x = pl + i * bw + bw * .15;
+    s += '<rect class="b" data-day="' + it.from + ':' + it.to + '" x="' + x.toFixed(1) + '" y="' + (H - pb - h).toFixed(1) + '" width="' + (bw * .7).toFixed(1) + '" height="' + Math.max(h, it.v ? 1.5 : 0).toFixed(1) + '" rx="2" fill="#2563eb"><title>' + esc(it.tt) + ': ' + it.v + ' calls</title></rect>';
+    if (i % step === 0) s += '<text x="' + (x + bw * .35).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="#64748b">' + esc(it.lb) + '</text>';
+  });
+  return s + '</svg>';
+}
+
+function npsOfficerChart(rows) {
+  const by = new Map();
+  rows.forEach(r => { const k = r.by || '(not set)'; const o = by.get(k) || { n: 0, good: 0, bad: 0, nr: 0, other: 0 }; o.n++; o[rvKind(r.rv)]++; by.set(k, o); });
+  const list = [...by.entries()].sort((a, b) => b[1].n - a[1].n).slice(0, 8);
+  if (!list.length) return '<div class="none">No data</div>';
+  const max = list[0][1].n;
+  return '<div class="legend"><span><b style="background:' + RV_COL.good + '"></b>Good</span><span><b style="background:' + RV_COL.bad + '"></b>Bad</span><span><b style="background:' + RV_COL.nr + '"></b>No response</span><span><b style="background:' + RV_COL.other + '"></b>Other</span></div>' +
+    list.map(x => { const o = x[1], seg = k => o[k] ? '<i style="width:' + (o[k] / o.n * 100) + '%;background:' + RV_COL[k] + '" title="' + k + ': ' + o[k] + '"></i>' : ''; return '<div class="hb" style="grid-template-columns:minmax(90px,150px) 1fr auto" data-set="by:' + esc(x[0]) + '"><span class="lb">' + esc(x[0]) + '</span><span class="stack" style="width:' + Math.max(8, Math.round(o.n / max * 100)) + '%">' + seg('good') + seg('bad') + seg('nr') + seg('other') + '</span><span class="v">' + fmtN(o.n) + '</span></div>'; }).join('');
+}
+
+function npsRepeat(rows) {
+  const m = new Map();
+  rows.forEach(r => { const o = m.get(r.ph) || { n: 0, last: '', rts: [] }; o.n++; if (r.d > o.last) o.last = r.d; o.rts.push(r.rt); m.set(r.ph, o); });
+  const list = [...m.entries()].filter(x => x[1].n > 1).sort((a, b) => b[1].n - a[1].n || (b[1].last > a[1].last ? 1 : -1));
+  const body = list.length ? '<table><thead><tr><th>Number</th><th class="num">Times</th><th>Ratings</th><th>Last call</th></tr></thead><tbody>' + list.slice(0, 8).map(x => '<tr><td><span class="phone" data-q="' + esc(x[0]) + '">' + esc(x[0]) + '</span></td><td class="num"><b>' + x[1].n + '</b></td><td>' + esc(x[1].rts.filter(Boolean).join(', ')) + '</td><td class="nw">' + esc(fmtDay(x[1].last)) + '</td></tr>').join('') + '</tbody></table>' : '<div class="none">No number appears more than once in this selection.</div>';
+  return { count: list.length, html: body };
+}
+
+function npsSummary(rows, fl) {
+  if (!fl.isNum || !rows.length) return '';
+  const sipMode = fl.digits.length <= 5, note = npsF.from || npsF.to ? ' in the selected dates' : '';
+  const dates = rows.map(r => r.d).filter(Boolean).sort(), n = rows.length;
+  const chips = (arr, field) => arr.slice(0, 8).map(x => '<button type="button" class="chip" data-set="' + field + ':' + esc(x[0]) + '">' + esc(x[0]) + '<b>' + x[1] + '</b></button>').join('');
+  const group = (label, html) => html ? '<div class="sum-g"><span class="cg-l">' + label + '</span>' + html + '</div>' : '';
+  const rts = tally(rows, 'rt').sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+  const rates = rows.map(r => parseFloat(r.rt)).filter(x => !isNaN(x)), avg = rates.length ? (rates.reduce((a, b) => a + b, 0) / rates.length).toFixed(1) : '-';
+  const span = dates.length ? 'First ' + fmtDay(dates[0]) + ' · Last ' + fmtDay(dates[dates.length - 1]) : '';
+  const phones = tally(rows, 'ph');
+  let k, big, unit, title, meta, extra = '';
+  if (sipMode) {
+    k = 'SIP ID'; big = fmtN(n); unit = n === 1 ? 'call' : 'calls'; title = 'SIP ' + fl.digits.replace(/^0+/, '');
+    meta = 'Low-rated NPS calls on this SIP' + note + ' · ' + fmtN(phones.length) + ' different numbers · average rating ' + avg + '. ' + span;
+    extra = group('Remarks', chips(tally(rows, 'rm'), 'rm'));
+  } else if (phones.length === 1) {
+    k = 'Times on the NPS list'; big = fmtN(n); unit = n === 1 ? 'time' : 'times'; title = phones[0][0];
+    meta = 'This number was on the NPS list ' + n + (n === 1 ? ' time' : ' times') + note + '. ' + span;
+    extra = group('SIP', tally(rows, 'sip').slice(0, 8).map(x => '<button type="button" class="chip" data-q="' + esc(x[0]) + '">' + esc(x[0]) + '<b>' + x[1] + '</b></button>').join(''));
+  } else {
+    k = 'Matching numbers'; big = fmtN(phones.length); unit = 'numbers'; title = fmtN(n) + ' calls match "' + fl.q + '"';
+    meta = 'Pick a number to see its full history. ' + span;
+    extra = group('Numbers', phones.slice(0, 8).map(x => '<button type="button" class="chip" data-q="' + esc(x[0]) + '">' + esc(x[0]) + '<b>' + x[1] + '</b></button>').join(''));
+  }
+  return '<div class="card sumcard t-blue"><div><div class="sum-k">' + k + '</div><div class="sum-n">' + big + '<span>' + unit + '</span></div></div><div class="sum-r"><div class="sum-t">' + esc(title) + '</div><div class="sum-m">' + esc(meta) + '</div>' +
+    group('Ratings', chips(rts, 'rt')) + group('Review', chips(tally(rows, 'rv'), 'rv')) + group('Taken by', chips(tally(rows, 'by'), 'by')) + extra + '</div></div>';
+}
+
+function npsTable(rows) {
+  const F = npsF, k = F.sort, dir = F.dir, numeric = k === 'rt' || k === 'sip';
+  const sorted = rows.slice().sort((a, b) => {
+    let c;
+    if (k === 'd') c = a.d < b.d ? -1 : a.d > b.d ? 1 : a.tm - b.tm;
+    else if (numeric) c = (parseFloat(a[k]) || 0) - (parseFloat(b[k]) || 0);
+    else c = a[k] < b[k] ? -1 : a[k] > b[k] ? 1 : 0;
+    return c * dir;
+  });
+  const pages = Math.max(1, Math.ceil(sorted.length / NPS_PAGE)); if (F.page >= pages) F.page = pages - 1; if (F.page < 0) F.page = 0;
+  const slice = sorted.slice(F.page * NPS_PAGE, (F.page + 1) * NPS_PAGE);
+  const cell = (r, key) => {
+    const v = r[key];
+    if (key === 'd') return '<td class="nw">' + esc(fmtDay(v)) + '</td>';
+    if (key === 'ph') return '<td class="nw"><span class="phone" data-q="' + esc(v) + '" title="See every call for this number">' + esc(v) + '</span></td>';
+    if (key === 'sip') return '<td class="nw"><span class="phone" data-q="' + esc(v) + '" title="See every call on this SIP">' + esc(v) + '</span></td>';
+    if (key === 'rt') return '<td>' + ratePill(v) + '</td>';
+    if (key === 'rv') return '<td>' + rvPill(v) + '</td>';
+    if (key === 'sh') return '<td>' + pill(v) + '</td>';
+    if (key === 'rm' || key === 'ar' || key === 'tk' || key === 'ac' || key === 'by' || key === 'disp') return '<td class="long" title="' + esc(v) + '">' + esc(v) + '</td>';
+    return '<td class="nw">' + esc(v) + '</td>';
+  };
+  const th = NPS_COLS.map(c => '<th class="sortable" data-sort="' + c[0] + '">' + esc(c[1]) + (k === c[0] ? (dir > 0 ? ' ▲' : ' ▼') : '') + '</th>').join('');
+  const from = sorted.length ? F.page * NPS_PAGE + 1 : 0, to = Math.min(sorted.length, (F.page + 1) * NPS_PAGE);
+  return '<div class="table-wrap"><table><thead><tr>' + th + '</tr></thead><tbody>' + slice.map(r => '<tr>' + NPS_KEYS.map(key => cell(r, key)).join('') + '</tr>').join('') + '</tbody></table></div>' +
+    '<div class="pg"><span>' + fmtN(from) + '-' + fmtN(to) + ' of ' + fmtN(sorted.length) + '</span><button class="btn ghost small" data-page="prev"' + (F.page === 0 ? ' disabled' : '') + '>Previous</button><span>Page ' + (F.page + 1) + ' of ' + pages + '</span><button class="btn ghost small" data-page="next"' + (F.page >= pages - 1 ? ' disabled' : '') + '>Next</button></div>';
+}
+
+function npsOut(keep) {
+  const out = $('#npsOut'); if (!out) return;
+  const N = state.nps, fl = npsFilter(), rows = fl.rows, total = N.rows.length;
+  const phones = new Map(); rows.forEach(r => phones.set(r.ph, (phones.get(r.ph) || 0) + 1));
+  const rep = npsRepeat(rows);
+  const rk = { good: 0, bad: 0, nr: 0, other: 0 }; let rs = 0, rn = 0;
+  rows.forEach(r => { rk[rvKind(r.rv)]++; const x = parseFloat(r.rt); if (!isNaN(x)) { rs += x; rn++; } });
+  const pc = v => rows.length ? Math.round(v / rows.length * 100) + '% of calls' : '';
+  const kpi = (ic, tn, l, v, s) => '<div class="card kpi t-' + tn + '"><div class="ki">' + icon(ic, 22) + '</div><div><div class="l">' + l + '</div><div class="v">' + v + '</div><div class="s">' + (s || '&nbsp;') + '</div></div></div>';
+  let h = '<div class="nps-meta" style="margin-bottom:12px"><span>Showing <b style="color:var(--ink)">' + fmtN(rows.length) + '</b> of ' + fmtN(total) + ' calls</span>' + (npsAnyFilter() ? '<span>Filters on</span>' : '') + '</div>';
+  if (!rows.length) {
+    out.innerHTML = h + '<div class="card"><div class="empty"><b>No calls match</b>' + (fl.isNum ? 'This number has no NPS calls' + (npsF.from || npsF.to ? ' in the selected dates' : '') + '. Check the digits or widen the dates.' : 'Try a different word or clear some filters.') + '</div></div>';
+    return;
+  }
+  h += npsSummary(rows, fl) +
+    '<div class="cards">' + kpi('calls', 'blue', 'NPS calls', fmtN(rows.length), '') + kpi('agents', 'indigo', 'Unique numbers', fmtN(phones.size), '') + kpi('refresh', 'orange', 'Repeat numbers', fmtN(rep.count), 'called more than once') +
+    kpi('performance', 'amber', 'Average rating', rn ? (rs / rn).toFixed(1) : '-', '') + kpi('handover', 'green', 'Good review', fmtN(rk.good), pc(rk.good)) + kpi('calls', 'red', 'Bad review', fmtN(rk.bad), pc(rk.bad)) + kpi('clock', 'slate', 'No response', fmtN(rk.nr), pc(rk.nr)) + '</div>' +
+    '<h2>Overview</h2><div class="charts">' +
+    '<div class="card wide"><div class="chart-t">Calls per day<span>Click a bar to filter by that day</span></div>' + npsDayChart(rows) + '</div>' +
+    '<div class="card"><div class="chart-t">Review<span>Click to filter</span></div>' + hbars(tally(rows, 'rv'), 'rv', 'green') + '</div>' +
+    '<div class="card"><div class="chart-t">By team member<span>Review split</span></div>' + npsOfficerChart(rows) + '</div>' +
+    '<div class="card"><div class="chart-t">Rating</div>' + hbars(tally(rows, 'rt').sort((a, b) => parseFloat(a[0]) - parseFloat(b[0])), 'rt', 'orange') + '</div>' +
+    '<div class="card"><div class="chart-t">Top remarks</div>' + hbars(tally(rows, 'rm').slice(0, 7), 'rm', 'indigo') + '</div>' +
+    '<div class="card"><div class="chart-t">Shift</div>' + hbars(tally(rows, 'sh'), 'sh', 'amber') + '</div>' +
+    '<div class="card"><div class="chart-t">Numbers called more than once<span>Click a number</span></div><div class="table-wrap" style="border:0;box-shadow:none">' + rep.html + '</div></div></div>' +
+    '<h2>All calls</h2>' + npsTable(rows);
+  const y = window.scrollY;
+  out.innerHTML = h;
+  if (keep) window.scrollTo(0, y);
+}
+
+/* ---------- Add many agents at once ---------- */
+function parseAgentLine(line) {
+  let parts = line.split(/\t|,|\||;/).map(x => x.trim()).filter(Boolean), name = '', id = '';
+  if (parts.length > 1) {
+    parts = parts.filter(p => !/^\d{1,2}$/.test(p));
+    const ii = parts.findIndex(p => /^[A-Za-z]{0,3}\d{3,10}$/.test(p));
+    if (ii > -1) { id = parts[ii]; parts.splice(ii, 1); }
+    name = parts[0] || '';
+  } else {
+    const p = parts[0] || '';
+    let m = p.match(/^(\d{3,10})\s+(.+)$/);
+    if (m) { id = m[1]; name = m[2]; }
+    else { m = p.match(/^(.+?)\s+(\d{3,10})$/); if (m) { name = m[1]; id = m[2]; } else name = p; }
+  }
+  return { name: name.replace(/\s+/g, ' ').trim(), id: id };
+}
+function parseAgentText(text, batch) {
+  const have = (state.data.Agents || []).filter(a => a.Batch === batch);
+  const names = new Set(have.map(a => String(a.AgentName).trim().toLowerCase())), ids = new Set(have.map(a => String(a.EmployeeID).trim().toLowerCase()).filter(Boolean));
+  const seenN = new Set(), seenI = new Set(), out = [];
+  text.split(/\r?\n/).forEach(raw => {
+    const line = raw.trim(); if (!line) return;
+    if (/\b(agent name|employee id|emp id|name)\b/i.test(line) && !/\d{3,}/.test(line)) return;
+    const p = parseAgentLine(line), key = p.name.toLowerCase();
+    let st = 'new';
+    if (!/[A-Za-zঀ-৿]{2}/.test(p.name)) st = 'noname';
+    else if (names.has(key) || (p.id && ids.has(p.id.toLowerCase()))) st = 'exists';
+    else if (seenN.has(key) || (p.id && seenI.has(p.id.toLowerCase()))) st = 'dup';
+    if (st === 'new') { seenN.add(key); if (p.id) seenI.add(p.id.toLowerCase()); }
+    out.push({ name: p.name, id: p.id, st: st, raw: line });
+  });
+  return out;
+}
+function openBulkAgents() {
+  const names = batchNames(), def = defaultBatch(), st = opts('AgentStatus');
+  $('#overlay').innerHTML = '<form class="modal" id="bulk" novalidate>' +
+    '<div class="m-h"><div class="ph-ico t-violet">' + icon('agents', 22) + '</div><div><h3>Add many agents</h3><p>Type or paste one agent per line. Pasting straight from Google Sheets or Excel works too.</p></div></div>' +
+    '<div class="grid2"><div class="field" data-f="Batch"><label for="bk_batch">Batch <span class="req">*</span></label><select id="bk_batch"><option value="">Select batch</option>' + names.map(b => '<option value="' + esc(b) + '"' + (b === def ? ' selected' : '') + '>' + esc(b) + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label for="bk_status">Status</label><select id="bk_status">' + st.map(o => '<option>' + esc(o) + '</option>').join('') + '</select></div>' +
+    '<div class="field wide" data-f="Text"><label for="bk_text">Agents <span class="req">*</span></label><textarea id="bk_text" rows="8" placeholder="Rahim Uddin, 4685&#10;Nusrat Jahan, 4690&#10;Karim Ahmed"></textarea><div class="hint">Write the name first, then the employee ID after a comma or tab. The ID is optional. The list below shows exactly what will be added.</div></div></div>' +
+    '<div id="bk_prev"></div><div class="err" id="bk_err"></div>' +
+    '<div class="modal-foot"><button class="btn" type="submit" id="bk_save">Add agents</button><button class="btn ghost" type="button" id="bk_cancel">Cancel</button></div></form>';
+  $('#overlay').hidden = false;
+  const draw = () => {
+    const rows = parseAgentText($('#bk_text').value, $('#bk_batch').value), c = k => rows.filter(r => r.st === k).length;
+    $('#bk_err').textContent = '';
+    if (!rows.length) { $('#bk_prev').innerHTML = ''; return; }
+    const lab = { new: ['New', 'green'], exists: ['Already in batch', 'slate'], dup: ['Repeated in list', 'amber'], noname: ['No name', 'red'] };
+    $('#bk_prev').innerHTML = '<div class="bk-sum"><b>' + c('new') + ' will be added</b>' + (c('exists') ? ' · ' + c('exists') + ' already in this batch' : '') + (c('dup') ? ' · ' + c('dup') + ' repeated' : '') + (c('noname') ? ' · ' + c('noname') + ' without a name' : '') + '</div>' +
+      '<div class="table-wrap bk-tbl"><table><thead><tr><th>#</th><th>Name</th><th>Employee ID</th><th>Result</th></tr></thead><tbody>' + rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name || r.raw) + '</td><td>' + esc(r.id) + '</td><td><span class="pill t-' + lab[r.st][1] + '">' + lab[r.st][0] + '</span></td></tr>').join('') + '</tbody></table></div>';
+    const b = $('#bk_save'); b.textContent = c('new') ? 'Add ' + c('new') + (c('new') === 1 ? ' agent' : ' agents') : 'Add agents';
+  };
+  $('#bk_text').oninput = draw; $('#bk_batch').onchange = draw;
+  $('#bk_cancel').onclick = closeForm;
+  $('#bulk').onsubmit = async e => {
+    e.preventDefault();
+    const batch = $('#bk_batch').value, rows = parseAgentText($('#bk_text').value, batch).filter(r => r.st === 'new'), err = $('#bk_err');
+    document.querySelectorAll('#bulk .field.bad').forEach(x => x.classList.remove('bad'));
+    if (!batch) { err.textContent = 'Batch is required'; $('#bk_batch').closest('.field').classList.add('bad'); return; }
+    if (!rows.length) { err.textContent = $('#bk_text').value.trim() ? 'Nothing new to add. These agents are already in this batch.' : 'Type or paste at least one agent'; $('#bk_text').closest('.field').classList.add('bad'); return; }
+    const btns = document.querySelectorAll('#bulk .btn'); btns.forEach(b => { b.disabled = true; }); $('#bk_save').textContent = 'Adding ' + rows.length + '...';
+    const status = $('#bk_status').value, all = rows.map(r => ({ Batch: batch, AgentName: r.name, EmployeeID: r.id, Status: status, Feedback: '' }));
+    try {
+      for (let i = 0; i < all.length; i += 200) {
+        const res = await api('addMany', { sheet: 'Agents', rows: all.slice(i, i + 200) });
+        state.data.Agents = (state.data.Agents || []).concat(res.records);
+      }
+      state.loadedAt = Date.now(); closeForm(); toast(all.length + (all.length === 1 ? ' agent added' : ' agents added'), 'ok'); route(true);
+    } catch (ex) { err.textContent = ex.message; btns.forEach(b => { b.disabled = false; }); $('#bk_save').textContent = 'Add agents'; }
+  };
+  $('#bk_text').focus();
+}
+
 const ROUTES = {
-  dashboard: viewDashboard, team: viewTeam, report: viewReport, settings: viewSettings,
+  dashboard: viewDashboard, team: viewTeam, report: viewReport, settings: viewSettings, nps: viewNps,
   batches: () => viewModule('batches'), agents: () => viewModule('agents'), sessions: () => viewModule('sessions'),
   materials: () => viewModule('materials'), calls: () => viewModule('calls'), performance: () => viewModule('performance'), handover: () => viewModule('handover')
 };
 const FRESH = { dashboard: 1, team: 1, report: 1 };
+const routeKey = () => ROUTES[location.hash.replace('#/', '')] ? location.hash.replace('#/', '') : 'dashboard';
 
-async function route(keepScroll) {
+function safeRerender() {
+  const a = document.activeElement;
+  return $('#overlay').hidden && !(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && $('#view').contains(a));
+}
+
+// Shows what we already have right away and refreshes in the background, so pages never wait on Google.
+function route(keepScroll) {
   if (!state.token) return;
-  const key = ROUTES[location.hash.replace('#/', '')] ? location.hash.replace('#/', '') : 'dashboard';
+  const key = routeKey();
   document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('active', a.dataset.r === key));
-  if (FRESH[key] && !keepScroll && Date.now() - state.loadedAt > 60000) {
-    $('#view').innerHTML = '<div class="loading">Loading data...</div>';
-    try { await loadAll(); } catch (e) { toast(e.message, 'err'); }
-  }
   ROUTES[key]();
   if (!keepScroll) window.scrollTo(0, 0);
+  cacheSave();
+  if (FRESH[key] && !keepScroll && Date.now() - state.loadedAt > 60000) bgRefresh();
+}
+
+async function bgRefresh() {
+  if (bgRefresh.busy || !state.token) return;
+  bgRefresh.busy = true;
+  const seq = state.wseq;
+  try {
+    const res = await api('listAll');
+    if (seq === state.wseq) { applyAll(res.data); if (routeKey() !== 'nps' && safeRerender()) route(true); }
+  } catch (e) {}
+  bgRefresh.busy = false;
 }
 
 function buildNav() {
   $('#nav').innerHTML = NAV.map(g => '<div class="nav-label">' + g[0] + '</div>' + g[1].map(x => '<a href="#/' + x[0] + '" data-r="' + x[0] + '">' + icon(x[2], 18) + x[1] + '</a>').join('')).join('');
 }
 
-async function startApp() {
+function cacheSave() {
+  clearTimeout(cacheSave.t);
+  cacheSave.t = setTimeout(() => { try { sessionStorage.setItem('ld_cache', JSON.stringify({ u: state.name, ts: state.loadedAt, data: state.data })); } catch (e) {} }, 400);
+}
+function cacheLoad() {
+  try {
+    const c = JSON.parse(sessionStorage.getItem('ld_cache') || 'null');
+    if (!c || c.u !== state.name || !c.data || !SHEETS.every(s => Array.isArray(c.data[s]))) return null;
+    return c;
+  } catch (e) { return null; }
+}
+
+async function startApp(preloaded) {
   $('#login').hidden = true; $('#app').hidden = false;
   buildNav();
   $('#who').textContent = state.name; $('#whoAv').textContent = initials(state.name); $('#whoAv').className = 'av t-' + tone(state.name);
   $('#demoBanner').hidden = !!CONFIG.API_URL;
   const sl = $('#sheetLink');
   if (state.sheetUrl) { sl.href = state.sheetUrl; sl.hidden = false; } else sl.hidden = true;
+  npsRestore();
+  if (preloaded) { route(); return; }
+  const c = cacheLoad();
+  if (c) { state.data = c.data; state.loadedAt = c.ts || 0; route(); bgRefresh(); return; }
   $('#view').innerHTML = '<div class="loading">Loading data...</div>';
   try { await loadAll(); } catch (e) { toast(e.message, 'err'); }
   route();
 }
 
 function signOut(msg) {
-  sessionStorage.removeItem('ld_session');
-  state.token = null; state.data = {}; state.loadedAt = 0;
+  ['ld_session', 'ld_cache', 'ld_nps'].forEach(k => { try { sessionStorage.removeItem(k); } catch (e) {} });
+  state.token = null; state.data = {}; state.loadedAt = 0; state.nps = { byTab: {}, order: [], rows: null, loadedAt: 0, error: '', promise: null };
   closeForm();
   $('#app').hidden = true; $('#login').hidden = false;
   $('#loginErr').textContent = msg || '';
@@ -958,16 +1538,18 @@ $('#loginForm').onsubmit = async e => {
     const res = await api('login', { username: $('#lu').value.trim(), password: $('#lp').value });
     state.token = res.token; state.name = res.name; state.sheetUrl = res.sheetUrl || '';
     sessionStorage.setItem('ld_session', JSON.stringify({ token: res.token, name: res.name, sheetUrl: state.sheetUrl }));
-    startApp();
+    let pre = false;
+    if (res.data && SHEETS.every(s => Array.isArray(res.data[s]))) { applyAll(res.data); pre = true; }
+    startApp(pre);
   } catch (err) { $('#loginErr').textContent = err.message; }
   btn.disabled = false; btn.textContent = 'Sign in';
 };
 $('#showPw').onclick = () => { const i = $('#lp'), s = i.type === 'password'; i.type = s ? 'text' : 'password'; $('#showPw').textContent = s ? 'Hide' : 'Show'; };
 $('#logoutBtn').onclick = () => signOut('');
 $('#refreshBtn').onclick = async () => {
-  $('#view').innerHTML = '<div class="loading">Loading data...</div>';
-  try { await loadAll(); toast('Data refreshed', 'ok'); } catch (e) { toast(e.message, 'err'); }
-  route(true);
+  if (routeKey() === 'nps') { npsLoadFlow(true); return; }
+  toast('Refreshing...');
+  try { await loadAll(); toast('Data refreshed', 'ok'); route(true); } catch (e) { toast(e.message, 'err'); }
 };
 $('#overlay').addEventListener('mousedown', e => { if (e.target.id === 'overlay') closeForm(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#overlay').hidden) closeForm(); });
@@ -975,6 +1557,8 @@ window.addEventListener('hashchange', () => route());
 
 $('#lf1').innerHTML = icon('sun', 18); $('#lf2').innerHTML = icon('calls', 18); $('#lf3').innerHTML = icon('report', 18);
 $('#demoHint').hidden = !!CONFIG.API_URL;
+// Wake the Google script while the person types their password, so sign-in does not wait for a cold start.
+if (CONFIG.API_URL) { try { fetch(CONFIG.API_URL, { mode: 'no-cors', cache: 'no-store' }).catch(() => {}); } catch (e) {} }
 try {
   const saved = JSON.parse(sessionStorage.getItem('ld_session') || 'null');
   if (saved && saved.token) { state.token = saved.token; state.name = saved.name; state.sheetUrl = saved.sheetUrl || ''; startApp(); }
