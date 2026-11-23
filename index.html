@@ -434,9 +434,10 @@ const MODULES = {
       { k: 'AgentName', label: 'Agent name', type: 'text', required: true },
       { k: 'EmployeeID', label: 'Employee ID', type: 'text' },
       { k: 'Status', label: 'Status', type: 'list', list: 'AgentStatus', sticky: true },
-      { k: 'Feedback', label: 'Training feedback', type: 'textarea', wide: true }
+      { k: 'LDOfficer', label: 'Assigned to LD officer', type: 'list', list: 'Trainer', blank: 'Not assigned yet', sticky: true, hint: 'Which LD officer this agent was handed over to.' },
+      { k: 'Feedback', label: 'Overall feedback', type: 'textarea', wide: true, hint: 'Type or paste the overall feedback. You can edit it later.' }
     ],
-    cols: [{ k: 'Batch' }, { k: 'AgentName', label: 'Agent' }, { k: 'EmployeeID', label: 'Employee ID' }, { k: 'Status', pill: true }, { k: 'Feedback' }]
+    cols: [{ k: 'Batch' }, { k: 'AgentName', label: 'Agent' }, { k: 'EmployeeID', label: 'Employee ID' }, { k: 'Status', pill: true }, { k: 'LDOfficer', label: 'LD officer' }, { k: 'Feedback', label: 'Overall feedback' }]
   },
   sessions: {
     sheet: 'Sessions', title: 'Session log', icon: 'sessions', tone: 'indigo', addLabel: 'Log session', dateKey: 'Date', repeat: true,
@@ -481,15 +482,18 @@ const MODULES = {
     chips: [{ k: 'CallType', label: 'Type', values: () => [LIVE, REC] }, { k: 'Reviewer', label: 'Reviewed by', values: () => opts('Trainer') }],
     fields: [
       { k: 'CallDate', label: 'Call date', type: 'date', required: true, def: 'today', sticky: true },
+      { k: 'ReviewDate', label: 'Review date', type: 'date', required: true, def: 'today', sticky: true },
       { k: 'CallType', label: 'Call type', type: 'select', options: [LIVE, REC], required: true, def: REC, sticky: true },
       { k: 'Batch', label: 'Batch', type: 'batch', required: true, sticky: true },
       { k: 'Reviewer', label: 'Reviewed by', type: 'list', list: 'Trainer', blank: 'Select person', sticky: true },
       { k: 'Agent', label: 'Agent', type: 'agent', required: true, hint: 'Pick from the batch or type a name.' },
+      { k: 'Phone', label: 'Phone number', type: 'text', ph: '01XXXXXXXXX' },
+      { k: 'SipID', label: 'SIP ID', type: 'text' },
       { k: 'Duration', label: 'Duration (minutes)', type: 'number' },
       { k: 'Disposition', label: 'Disposition (type or paste)', type: 'suggest', list: 'Disposition', wide: true },
       { k: 'Remarks', label: 'Remarks (type or paste)', type: 'textarea', wide: true }
     ],
-    cols: [{ k: 'CallDate', label: 'Call date' }, { k: 'CallType', label: 'Type', pill: true }, { k: 'Batch' }, { k: 'Agent' }, { k: 'Duration', label: 'Min', num: true }, { k: 'Disposition' }, { k: 'Remarks' }, { k: 'Reviewer', label: 'Reviewed by' }]
+    cols: [{ k: 'CallDate', label: 'Call date' }, { k: 'ReviewDate', label: 'Review date' }, { k: 'CallType', label: 'Type', pill: true }, { k: 'Batch' }, { k: 'Agent' }, { k: 'Phone', label: 'Phone' }, { k: 'SipID', label: 'SIP ID' }, { k: 'Duration', label: 'Min', num: true }, { k: 'Disposition' }, { k: 'Remarks' }, { k: 'Reviewer', label: 'Reviewed by' }]
   },
   performance: {
     sheet: 'Performance', title: 'Performance', icon: 'performance', tone: 'green', addLabel: 'Add entry', dateKey: 'Date', repeat: true,
@@ -516,10 +520,9 @@ const MODULES = {
       { k: 'HandoverDate', label: 'Handover date', type: 'date', required: true, def: 'today' },
       { k: 'Agent', label: 'Agent (blank for whole batch)', type: 'agent' },
       { k: 'QAOfficer', label: 'QA officer', type: 'text' },
-      { k: 'Method', label: 'How it was handed over', type: 'textarea', wide: true },
       { k: 'Notes', label: 'Notes', type: 'textarea', wide: true }
     ],
-    cols: [{ k: 'HandoverDate', label: 'Date' }, { k: 'Batch' }, { k: 'Agent' }, { k: 'QAOfficer', label: 'QA officer' }, { k: 'Method', label: 'How handed over' }, { k: 'Notes' }]
+    cols: [{ k: 'HandoverDate', label: 'Date' }, { k: 'Batch' }, { k: 'Agent' }, { k: 'QAOfficer', label: 'QA officer' }, { k: 'Notes' }]
   }
 };
 
@@ -726,6 +729,7 @@ function defaultFor(key, fl) {
   if (fl.def === 'today') return today();
   if (fl.type === 'batch' && fl.k === 'Batch' && key !== 'batches' && key !== 'materials') return defaultBatch();
   if (fl.k === 'Shift') return defaultShift();
+  if (fl.k === 'LDOfficer') return '';
   if (fl.k === 'Trainer' || fl.k === 'Reviewer') return opts('Trainer').indexOf(state.name) > -1 ? state.name : '';
   if (fl.type === 'list') return opts(fl.list)[0] || '';
   return fl.def || '';
@@ -1336,6 +1340,7 @@ function openBulkAgents() {
     '<div class="m-h"><div class="ph-ico t-violet">' + icon('agents', 22) + '</div><div><h3>Add many agents</h3><p>Type or paste one agent per line. Pasting straight from Google Sheets or Excel works too.</p></div></div>' +
     '<div class="grid2"><div class="field" data-f="Batch"><label for="bk_batch">Batch <span class="req">*</span></label><select id="bk_batch"><option value="">Select batch</option>' + names.map(b => '<option value="' + esc(b) + '"' + (b === def ? ' selected' : '') + '>' + esc(b) + '</option>').join('') + '</select></div>' +
     '<div class="field"><label for="bk_status">Status</label><select id="bk_status">' + st.map(o => '<option>' + esc(o) + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label for="bk_ld">Assigned to LD officer</label><select id="bk_ld"><option value="">Not assigned yet</option>' + opts('Trainer').map(o => '<option>' + esc(o) + '</option>').join('') + '</select></div>' +
     '<div class="field wide" data-f="Text"><label for="bk_text">Agents <span class="req">*</span></label><textarea id="bk_text" rows="8" placeholder="Rahim Uddin, 4685&#10;Nusrat Jahan, 4690&#10;Karim Ahmed"></textarea><div class="hint">Write the name first, then the employee ID after a comma or tab. The ID is optional. The list below shows exactly what will be added.</div></div></div>' +
     '<div id="bk_prev"></div><div class="err" id="bk_err"></div>' +
     '<div class="modal-foot"><button class="btn" type="submit" id="bk_save">Add agents</button><button class="btn ghost" type="button" id="bk_cancel">Cancel</button></div></form>';
@@ -1358,7 +1363,7 @@ function openBulkAgents() {
     if (!batch) { err.textContent = 'Batch is required'; $('#bk_batch').closest('.field').classList.add('bad'); return; }
     if (!rows.length) { err.textContent = $('#bk_text').value.trim() ? 'Nothing new to add. These agents are already in this batch.' : 'Type or paste at least one agent'; $('#bk_text').closest('.field').classList.add('bad'); return; }
     const btns = document.querySelectorAll('#bulk .btn'); btns.forEach(b => { b.disabled = true; }); $('#bk_save').textContent = 'Adding ' + rows.length + '...';
-    const status = $('#bk_status').value, all = rows.map(r => ({ Batch: batch, AgentName: r.name, EmployeeID: r.id, Status: status, Feedback: '' }));
+    const status = $('#bk_status').value, all = rows.map(r => ({ Batch: batch, AgentName: r.name, EmployeeID: r.id, Status: status, LDOfficer: $('#bk_ld').value, Feedback: '' }));
     try {
       for (let i = 0; i < all.length; i += 200) {
         const res = await api('addMany', { sheet: 'Agents', rows: all.slice(i, i + 200) });
