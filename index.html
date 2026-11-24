@@ -41,6 +41,8 @@ a{color:var(--brand)}
 .field label{display:block;font-size:12.5px;font-weight:500;color:#334155;margin-bottom:5px}
 .field .req{color:#dc2626}
 .modal input:disabled,.modal select:disabled,.modal textarea:disabled{background:#f8fafc;color:var(--ink);opacity:1;cursor:default;-webkit-text-fill-color:var(--ink)}
+.viewer #addBtn,.viewer #bulkBtn,.viewer #emptyAdd,.viewer [data-add],.viewer .addrow,.viewer .opt .x{display:none!important}
+.viewer-tag{display:inline-block;font-size:11px;font-weight:600;color:#475569;background:#e2e8f0;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px}
 .field .hint{font-size:12px;color:var(--muted);margin-top:4px}
 input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:8px 11px;min-height:40px}
 textarea{resize:vertical;min-height:84px}
@@ -755,10 +757,13 @@ function fieldHTML(m, fl, val) {
   return '<div class="' + cls + '" data-f="' + fl.k + '"><label for="' + id + '">' + esc(fl.label) + (fl.required ? ' <span class="req">*</span>' : '') + '</label>' + ctl + (fl.hint ? '<div class="hint">' + esc(fl.hint) + '</div>' : '') + '</div>';
 }
 
-// Only the person who created an entry may delete it.
-const isMine = rec => !!rec && String(rec.CreatedBy || '').trim().toLowerCase() === String(state.name || '').trim().toLowerCase() && !!state.name;
+// View-only accounts (everyone who is not one of the LD officers) can look and search but not change anything.
+const canEdit = () => state.canEdit != null ? !!state.canEdit : opts('Trainer').indexOf(state.name) > -1;
+// Only the person who created an entry may change or delete it.
+const isMine = rec => canEdit() && !!rec && String(rec.CreatedBy || '').trim().toLowerCase() === String(state.name || '').trim().toLowerCase() && !!state.name;
 
 function openForm(key, id, prefill) {
+  if (!id && !canEdit()) return;
   const m = MODULES[key];
   const rec = id ? (state.data[m.sheet] || []).find(r => r.ID === id) : null;
   const ro = !!rec && !isMine(rec);
@@ -771,7 +776,7 @@ function openForm(key, id, prefill) {
   const dls = (m.fields.some(f => f.type === 'agent') ? '<datalist id="dl_agent">' + agentsFor(vals.Batch).map(a => '<option value="' + esc(a) + '">').join('') + '</datalist>' : '') +
     m.fields.filter(f => f.type === 'suggest').map(f => '<datalist id="dl_' + f.k + '">' + suggestFor(m, f).map(a => '<option value="' + esc(a) + '">').join('') + '</datalist>').join('');
   $('#overlay').innerHTML = '<form class="modal" id="form" novalidate>' +
-    '<div class="m-h"><div class="ph-ico t-' + m.tone + '">' + icon(m.icon, 22) + '</div><div><h3>' + esc(ro ? 'View entry' : rec ? 'Edit entry' : m.addLabel) + '</h3><p>' + esc(ro ? 'Added by ' + (rec.CreatedBy || 'someone else') + '. Only the person who added an entry can change or delete it.' : rec ? 'Change anything and save. The row in Google Sheets updates too.' : 'Fields marked with a red star are required.') + '</p></div></div>' + dls +
+    '<div class="m-h"><div class="ph-ico t-' + m.tone + '">' + icon(m.icon, 22) + '</div><div><h3>' + esc(ro ? 'View entry' : rec ? 'Edit entry' : m.addLabel) + '</h3><p>' + esc(ro ? (canEdit() ? 'Added by ' + (rec.CreatedBy || 'someone else') + '. Only the person who added an entry can change or delete it.' : 'You have view-only access. You can look at and search every entry, but not change it.') : rec ? 'Change anything and save. The row in Google Sheets updates too.' : 'Fields marked with a red star are required.') + '</p></div></div>' + dls +
     '<div class="grid2">' + m.fields.map(fl => fieldHTML(m, fl, vals[fl.k])).join('') + '</div>' +
     '<div class="err" id="formErr"></div>' +
     '<div class="modal-foot">' + (ro ? '' : '<button class="btn" type="submit" id="saveBtn">Save</button>') +
@@ -993,6 +998,7 @@ async function seedIfNeeded(list) {
   state.data.Settings = (state.data.Settings || []).concat(res.records);
 }
 async function addOption(list, value) {
+  if (!canEdit()) return;
   const v = value.trim();
   if (!v) { toast('Type an option first', 'err'); return; }
   if (opts(list).some(x => x.toLowerCase() === v.toLowerCase())) { toast('That option already exists', 'err'); return; }
@@ -1004,6 +1010,7 @@ async function addOption(list, value) {
   } catch (e) { toast(e.message, 'err'); }
 }
 async function removeOption(list, val) {
+  if (!canEdit()) return;
   if (opts(list).length <= 1) { toast('Keep at least one option in this list', 'err'); return; }
   if (!confirm('Remove "' + val + '" from the list? Old entries keep their value.')) return;
   try {
@@ -1343,6 +1350,7 @@ function parseAgentText(text, batch) {
   return out;
 }
 function openBulkAgents() {
+  if (!canEdit()) return;
   const names = batchNames(), def = defaultBatch(), st = opts('AgentStatus');
   $('#overlay').innerHTML = '<form class="modal" id="bulk" novalidate>' +
     '<div class="m-h"><div class="ph-ico t-violet">' + icon('agents', 22) + '</div><div><h3>Add many agents</h3><p>Type or paste one agent per line. Pasting straight from Google Sheets or Excel works too.</p></div></div>' +
@@ -1401,6 +1409,7 @@ function route(keepScroll) {
   if (!state.token) return;
   const key = routeKey();
   document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('active', a.dataset.r === key));
+  document.body.classList.toggle('viewer', !canEdit());
   ROUTES[key]();
   if (!keepScroll) window.scrollTo(0, 0);
   cacheSave();
@@ -1437,7 +1446,7 @@ function cacheLoad() {
 async function startApp(preloaded) {
   $('#login').hidden = true; $('#app').hidden = false;
   buildNav();
-  $('#who').textContent = state.name; $('#whoAv').textContent = initials(state.name); $('#whoAv').className = 'av t-' + tone(state.name);
+  $('#who').innerHTML = esc(state.name) + (canEdit() ? '' : '<span class="viewer-tag">View only</span>'); $('#whoAv').textContent = initials(state.name); $('#whoAv').className = 'av t-' + tone(state.name);
   $('#demoBanner').hidden = !!CONFIG.API_URL;
   const sl = $('#sheetLink');
   if (state.sheetUrl) { sl.href = state.sheetUrl; sl.hidden = false; } else sl.hidden = true;
@@ -1452,7 +1461,7 @@ async function startApp(preloaded) {
 
 function signOut(msg) {
   ['ld_session', 'ld_cache', 'ld_nps'].forEach(k => { try { sessionStorage.removeItem(k); } catch (e) {} });
-  state.token = null; state.data = {}; state.loadedAt = 0; state.nps = { byTab: {}, order: [], rows: null, loadedAt: 0, error: '', promise: null };
+  state.token = null; state.canEdit = undefined; document.body.classList.remove('viewer'); state.data = {}; state.loadedAt = 0; state.nps = { byTab: {}, order: [], rows: null, loadedAt: 0, error: '', promise: null };
   closeForm();
   $('#app').hidden = true; $('#login').hidden = false;
   $('#loginErr').textContent = msg || '';
@@ -1464,8 +1473,8 @@ $('#loginForm').onsubmit = async e => {
   const btn = $('#loginBtn'); btn.disabled = true; btn.textContent = 'Signing in...'; $('#loginErr').textContent = '';
   try {
     const res = await api('login', { username: $('#lu').value.trim(), password: $('#lp').value });
-    state.token = res.token; state.name = res.name; state.sheetUrl = res.sheetUrl || '';
-    sessionStorage.setItem('ld_session', JSON.stringify({ token: res.token, name: res.name, sheetUrl: state.sheetUrl }));
+    state.token = res.token; state.name = res.name; state.sheetUrl = res.sheetUrl || ''; state.canEdit = res.canEdit;
+    sessionStorage.setItem('ld_session', JSON.stringify({ token: res.token, name: res.name, sheetUrl: state.sheetUrl, canEdit: res.canEdit }));
     let pre = false;
     if (res.data && SHEETS.every(s => Array.isArray(res.data[s]))) { applyAll(res.data); pre = true; }
     startApp(pre);
@@ -1489,7 +1498,7 @@ $('#demoHint').hidden = !!CONFIG.API_URL;
 if (CONFIG.API_URL) { try { fetch(CONFIG.API_URL, { mode: 'no-cors', cache: 'no-store' }).catch(() => {}); } catch (e) {} }
 try {
   const saved = JSON.parse(sessionStorage.getItem('ld_session') || 'null');
-  if (saved && saved.token) { state.token = saved.token; state.name = saved.name; state.sheetUrl = saved.sheetUrl || ''; startApp(); }
+  if (saved && saved.token) { state.token = saved.token; state.name = saved.name; state.sheetUrl = saved.sheetUrl || ''; state.canEdit = saved.canEdit; startApp(); }
 } catch (e) {}
 </script>
 </body>
