@@ -460,13 +460,14 @@ const MODULES = {
     chips: [{ k: 'Status', label: 'Status', values: () => opts('AgentStatus') }],
     fields: [
       { k: 'Batch', label: 'Batch', type: 'batch', required: true, sticky: true },
-      { k: 'AgentName', label: 'Agent name', type: 'text', required: true },
       { k: 'EmployeeID', label: 'Employee ID', type: 'text' },
+      { k: 'SipId', label: 'SIP ID', type: 'text' },
+      { k: 'AgentName', label: 'Agent name', type: 'text', required: true },
       { k: 'Status', label: 'Status', type: 'list', list: 'AgentStatus', sticky: true },
-      { k: 'LDOfficer', label: 'Assigned to LD officer', type: 'list', list: 'Trainer', blank: 'Not assigned yet', sticky: true, hint: 'Which LD officer this agent was handed over to.' },
+      { k: 'AssignedTo', label: 'Assigned to LD officer', type: 'list', list: 'Trainer', blank: 'Not assigned yet', sticky: true, hint: 'Which LD officer this agent was handed over to.' },
       { k: 'Feedback', label: 'Overall feedback', type: 'textarea', wide: true, hint: 'Type or paste the overall feedback. You can edit it later.' }
     ],
-    cols: [{ k: 'Batch' }, { k: 'AgentName', label: 'Agent' }, { k: 'EmployeeID', label: 'Employee ID' }, { k: 'Status', pill: true }, { k: 'LDOfficer', label: 'LD officer' }, { k: 'Feedback', label: 'Overall feedback' }]
+    cols: [{ k: 'Batch' }, { k: 'EmployeeID', label: 'Employee ID' }, { k: 'SipId', label: 'SIP ID' }, { k: 'AgentName', label: 'Agent' }, { k: 'Status', pill: true }, { k: 'AssignedTo', label: 'LD officer' }, { k: 'Feedback', label: 'Overall feedback' }]
   },
   sessions: {
     sheet: 'Sessions', title: 'Session log', icon: 'sessions', tone: 'indigo', addLabel: 'Log session', dateKey: 'Date', repeat: true,
@@ -516,13 +517,13 @@ const MODULES = {
       { k: 'Batch', label: 'Batch', type: 'batch', required: true, sticky: true },
       { k: 'Reviewer', label: 'Reviewed by', type: 'list', list: 'Trainer', blank: 'Select person', sticky: true },
       { k: 'Agent', label: 'Agent', type: 'agent', required: true, hint: 'Pick from the batch or type a name.' },
-      { k: 'Phone', label: 'Phone number', type: 'text', ph: '01XXXXXXXXX' },
-      { k: 'SipID', label: 'SIP ID', type: 'text' },
+      { k: 'Number', label: 'Phone number', type: 'text', ph: '01XXXXXXXXX' },
+      { k: 'SipId', label: 'SIP ID', type: 'text' },
       { k: 'Duration', label: 'Duration (minutes)', type: 'number' },
       { k: 'Disposition', label: 'Disposition (type or paste)', type: 'suggest', list: 'Disposition', wide: true },
       { k: 'Remarks', label: 'Remarks (type or paste)', type: 'textarea', wide: true }
     ],
-    cols: [{ k: 'CallDate', label: 'Call date' }, { k: 'ReviewDate', label: 'Review date' }, { k: 'CallType', label: 'Type', pill: true }, { k: 'Batch' }, { k: 'Agent' }, { k: 'Phone', label: 'Phone' }, { k: 'SipID', label: 'SIP ID' }, { k: 'Duration', label: 'Min', num: true }, { k: 'Disposition' }, { k: 'Remarks' }, { k: 'Reviewer', label: 'Reviewed by' }]
+    cols: [{ k: 'CallDate', label: 'Call date' }, { k: 'ReviewDate', label: 'Review date' }, { k: 'CallType', label: 'Type', pill: true }, { k: 'Batch' }, { k: 'Agent' }, { k: 'Number', label: 'Phone' }, { k: 'SipId', label: 'SIP ID' }, { k: 'Duration', label: 'Min', num: true }, { k: 'Disposition' }, { k: 'Remarks' }, { k: 'Reviewer', label: 'Reviewed by' }]
   },
   performance: {
     sheet: 'Performance', title: 'Performance', icon: 'performance', tone: 'green', addLabel: 'Add entry', dateKey: 'Date', repeat: true,
@@ -759,7 +760,7 @@ function defaultFor(key, fl) {
   if (fl.def === 'today') return today();
   if (fl.type === 'batch' && fl.k === 'Batch' && key !== 'batches' && key !== 'materials') return defaultBatch();
   if (fl.k === 'Shift') return defaultShift();
-  if (fl.k === 'LDOfficer') return '';
+  if (fl.k === 'AssignedTo') return '';
   if (fl.k === 'Trainer' || fl.k === 'Reviewer') return opts('Trainer').indexOf(state.name) > -1 ? state.name : '';
   if (fl.type === 'list') return opts(fl.list)[0] || '';
   return fl.def || '';
@@ -1345,19 +1346,22 @@ function npsOut(keep) {
 
 /* ---------- Add many agents at once ---------- */
 function parseAgentLine(line) {
-  let parts = line.split(/\t|,|\||;/).map(x => x.trim()).filter(Boolean), name = '', id = '';
+  const isId = p => /^[A-Za-z]{0,3}\d{3,10}$/.test(p);
+  const hasName = p => /[A-Za-z\u0980-\u09FF]{2}/.test(p) && !isId(p);
+  let id = '', sip = '', name = '';
+  const parts = line.split(/\t|,|\||;/).map(x => x.trim()).filter(Boolean);
   if (parts.length > 1) {
-    parts = parts.filter(p => !/^\d{1,2}$/.test(p));
-    const ii = parts.findIndex(p => /^[A-Za-z]{0,3}\d{3,10}$/.test(p));
-    if (ii > -1) { id = parts[ii]; parts.splice(ii, 1); }
-    name = parts[0] || '';
+    const ids = parts.filter(isId);
+    id = ids[0] || ''; sip = ids[1] || '';
+    name = parts.filter(hasName).join(' ');
   } else {
-    const p = parts[0] || '';
-    let m = p.match(/^(\d{3,10})\s+(.+)$/);
-    if (m) { id = m[1]; name = m[2]; }
-    else { m = p.match(/^(.+?)\s+(\d{3,10})$/); if (m) { name = m[1]; id = m[2]; } else name = p; }
+    const t = (parts[0] || '').split(/\s+/).filter(Boolean), lead = [];
+    while (t.length > 1 && lead.length < 2 && isId(t[0])) lead.push(t.shift());
+    if (!lead.length) while (t.length > 1 && lead.length < 2 && isId(t[t.length - 1])) lead.unshift(t.pop());
+    id = lead[0] || ''; sip = lead[1] || '';
+    name = t.join(' ');
   }
-  return { name: name.replace(/\s+/g, ' ').trim(), id: id };
+  return { name: name.replace(/\s+/g, ' ').trim(), id: id, sip: sip };
 }
 function parseAgentText(text, batch) {
   const have = (state.data.Agents || []).filter(a => a.Batch === batch);
@@ -1372,7 +1376,7 @@ function parseAgentText(text, batch) {
     else if (names.has(key) || (p.id && ids.has(p.id.toLowerCase()))) st = 'exists';
     else if (seenN.has(key) || (p.id && seenI.has(p.id.toLowerCase()))) st = 'dup';
     if (st === 'new') { seenN.add(key); if (p.id) seenI.add(p.id.toLowerCase()); }
-    out.push({ name: p.name, id: p.id, st: st, raw: line });
+    out.push({ name: p.name, id: p.id, sip: p.sip, st: st, raw: line });
   });
   return out;
 }
@@ -1384,7 +1388,7 @@ function openBulkAgents() {
     '<div class="grid2"><div class="field" data-f="Batch"><label for="bk_batch">Batch <span class="req">*</span></label><select id="bk_batch"><option value="">Select batch</option>' + names.map(b => '<option value="' + esc(b) + '"' + (b === def ? ' selected' : '') + '>' + esc(b) + '</option>').join('') + '</select></div>' +
     '<div class="field"><label for="bk_status">Status</label><select id="bk_status">' + st.map(o => '<option>' + esc(o) + '</option>').join('') + '</select></div>' +
     '<div class="field"><label for="bk_ld">Assigned to LD officer</label><select id="bk_ld"><option value="">Not assigned yet</option>' + opts('Trainer').map(o => '<option>' + esc(o) + '</option>').join('') + '</select></div>' +
-    '<div class="field wide" data-f="Text"><label for="bk_text">Agents <span class="req">*</span></label><textarea id="bk_text" rows="8" placeholder="Rahim Uddin, 4685&#10;Nusrat Jahan, 4690&#10;Karim Ahmed"></textarea><div class="hint">Write the name first, then the employee ID after a comma or tab. The ID is optional. The list below shows exactly what will be added.</div></div></div>' +
+    '<div class="field wide" data-f="Text"><label for="bk_text">Agents <span class="req">*</span></label><textarea id="bk_text" rows="8" placeholder="11192 1137 Rahim Uddin&#10;11194 1141 Nusrat Jahan&#10;11195 1164 Karim Ahmed"></textarea><div class="hint">Write each line in this order: Employee ID, SIP ID, Agent name. Separate them with a space, comma or tab. Employee ID and SIP ID are optional. The list below shows exactly what will be added.</div></div></div>' +
     '<div id="bk_prev"></div><div class="err" id="bk_err"></div>' +
     '<div class="modal-foot"><button class="btn" type="submit" id="bk_save">Add agents</button><button class="btn ghost" type="button" id="bk_cancel">Cancel</button></div></form>';
   $('#overlay').hidden = false;
@@ -1394,7 +1398,7 @@ function openBulkAgents() {
     if (!rows.length) { $('#bk_prev').innerHTML = ''; return; }
     const lab = { new: ['New', 'green'], exists: ['Already in batch', 'slate'], dup: ['Repeated in list', 'amber'], noname: ['No name', 'red'] };
     $('#bk_prev').innerHTML = '<div class="bk-sum"><b>' + c('new') + ' will be added</b>' + (c('exists') ? ' · ' + c('exists') + ' already in this batch' : '') + (c('dup') ? ' · ' + c('dup') + ' repeated' : '') + (c('noname') ? ' · ' + c('noname') + ' without a name' : '') + '</div>' +
-      '<div class="table-wrap bk-tbl"><table><thead><tr><th>#</th><th>Name</th><th>Employee ID</th><th>Result</th></tr></thead><tbody>' + rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.name || r.raw) + '</td><td>' + esc(r.id) + '</td><td><span class="pill t-' + lab[r.st][1] + '">' + lab[r.st][0] + '</span></td></tr>').join('') + '</tbody></table></div>';
+      '<div class="table-wrap bk-tbl"><table><thead><tr><th>#</th><th>Employee ID</th><th>SIP ID</th><th>Name</th><th>Result</th></tr></thead><tbody>' + rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.id) + '</td><td>' + esc(r.sip) + '</td><td>' + esc(r.name || r.raw) + '</td><td><span class="pill t-' + lab[r.st][1] + '">' + lab[r.st][0] + '</span></td></tr>').join('') + '</tbody></table></div>';
     const b = $('#bk_save'); b.textContent = c('new') ? 'Add ' + c('new') + (c('new') === 1 ? ' agent' : ' agents') : 'Add agents';
   };
   $('#bk_text').oninput = draw; $('#bk_batch').onchange = draw;
@@ -1406,7 +1410,7 @@ function openBulkAgents() {
     if (!batch) { err.textContent = 'Batch is required'; $('#bk_batch').closest('.field').classList.add('bad'); return; }
     if (!rows.length) { err.textContent = $('#bk_text').value.trim() ? 'Nothing new to add. These agents are already in this batch.' : 'Type or paste at least one agent'; $('#bk_text').closest('.field').classList.add('bad'); return; }
     const btns = document.querySelectorAll('#bulk .btn'); btns.forEach(b => { b.disabled = true; }); $('#bk_save').textContent = 'Adding ' + rows.length + '...';
-    const status = $('#bk_status').value, all = rows.map(r => ({ Batch: batch, AgentName: r.name, EmployeeID: r.id, Status: status, LDOfficer: $('#bk_ld').value, Feedback: '' }));
+    const status = $('#bk_status').value, all = rows.map(r => ({ Batch: batch, AgentName: r.name, EmployeeID: r.id, SipId: r.sip, Status: status, AssignedTo: $('#bk_ld').value, Feedback: '' }));
     try {
       for (let i = 0; i < all.length; i += 200) {
         const res = await api('addMany', { sheet: 'Agents', rows: all.slice(i, i + 200) });
