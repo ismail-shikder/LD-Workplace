@@ -40,6 +40,7 @@ a{color:var(--brand)}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12.5px;font-weight:500;color:#334155;margin-bottom:5px}
 .field .req{color:#dc2626}
+.modal input:disabled,.modal select:disabled,.modal textarea:disabled{background:#f8fafc;color:var(--ink);opacity:1;cursor:default;-webkit-text-fill-color:var(--ink)}
 .field .hint{font-size:12px;color:var(--muted);margin-top:4px}
 input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:8px 11px;min-height:40px}
 textarea{resize:vertical;min-height:84px}
@@ -760,6 +761,7 @@ const isMine = rec => !!rec && String(rec.CreatedBy || '').trim().toLowerCase() 
 function openForm(key, id, prefill) {
   const m = MODULES[key];
   const rec = id ? (state.data[m.sheet] || []).find(r => r.ID === id) : null;
+  const ro = !!rec && !isMine(rec);
   const vals = {};
   m.fields.forEach(fl => {
     if (rec) vals[fl.k] = rec[fl.k] || '';
@@ -769,18 +771,19 @@ function openForm(key, id, prefill) {
   const dls = (m.fields.some(f => f.type === 'agent') ? '<datalist id="dl_agent">' + agentsFor(vals.Batch).map(a => '<option value="' + esc(a) + '">').join('') + '</datalist>' : '') +
     m.fields.filter(f => f.type === 'suggest').map(f => '<datalist id="dl_' + f.k + '">' + suggestFor(m, f).map(a => '<option value="' + esc(a) + '">').join('') + '</datalist>').join('');
   $('#overlay').innerHTML = '<form class="modal" id="form" novalidate>' +
-    '<div class="m-h"><div class="ph-ico t-' + m.tone + '">' + icon(m.icon, 22) + '</div><div><h3>' + esc(rec ? 'Edit entry' : m.addLabel) + '</h3><p>' + esc(rec ? 'Change anything and save. The row in Google Sheets updates too.' : 'Fields marked with a red star are required.') + '</p></div></div>' + dls +
+    '<div class="m-h"><div class="ph-ico t-' + m.tone + '">' + icon(m.icon, 22) + '</div><div><h3>' + esc(ro ? 'View entry' : rec ? 'Edit entry' : m.addLabel) + '</h3><p>' + esc(ro ? 'Added by ' + (rec.CreatedBy || 'someone else') + '. Only the person who added an entry can change or delete it.' : rec ? 'Change anything and save. The row in Google Sheets updates too.' : 'Fields marked with a red star are required.') + '</p></div></div>' + dls +
     '<div class="grid2">' + m.fields.map(fl => fieldHTML(m, fl, vals[fl.k])).join('') + '</div>' +
     '<div class="err" id="formErr"></div>' +
-    '<div class="modal-foot"><button class="btn" type="submit" id="saveBtn">Save</button>' +
+    '<div class="modal-foot">' + (ro ? '' : '<button class="btn" type="submit" id="saveBtn">Save</button>') +
     (!rec && m.repeat ? '<button class="btn soft" type="button" id="againBtn">Save and add another</button>' : '') +
-    '<button class="btn ghost" type="button" id="cancelBtn">Cancel</button><span class="grow"></span>' +
+    '<button class="btn ' + (ro ? '' : 'ghost') + '" type="button" id="cancelBtn">' + (ro ? 'Close' : 'Cancel') + '</button><span class="grow"></span>' +
     (isMine(rec) ? '<button class="btn danger" type="button" id="delBtn">Delete</button>' : '') + '</div></form>';
   $('#overlay').hidden = false;
   const bsel = $('#f_Batch');
   if (bsel && $('#dl_agent')) bsel.onchange = () => { $('#dl_agent').innerHTML = agentsFor(bsel.value).map(a => '<option value="' + esc(a) + '">').join(''); };
   $('#cancelBtn').onclick = closeForm;
-  $('#form').onsubmit = e => { e.preventDefault(); submitForm(key, id, false); };
+  $('#form').onsubmit = e => { e.preventDefault(); if (!ro) submitForm(key, id, false); };
+  if (ro) { document.querySelectorAll('#form input,#form select,#form textarea').forEach(el => { el.disabled = true; }); $('#cancelBtn').focus(); return; }
   if ($('#againBtn')) $('#againBtn').onclick = () => submitForm(key, id, true);
   if ($('#delBtn')) $('#delBtn').onclick = () => removeRecord(key, id);
   document.querySelectorAll('#form input,#form select,#form textarea').forEach(el => { el.addEventListener('input', () => { const fe = el.closest('.field'); if (fe) fe.classList.remove('bad'); }); });
@@ -789,6 +792,7 @@ function openForm(key, id, prefill) {
 function closeForm() { $('#overlay').hidden = true; $('#overlay').innerHTML = ''; }
 
 async function submitForm(key, id, again) {
+  if (id && !isMine((state.data[MODULES[key].sheet] || []).find(r => r.ID === id))) { toast('Only the person who added this entry can change it', 'err'); return; }
   const m = MODULES[key], row = {}; let err = '', badField = '';
   document.querySelectorAll('#form .field.bad').forEach(x => x.classList.remove('bad'));
   m.fields.forEach(fl => {
