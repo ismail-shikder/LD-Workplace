@@ -26,7 +26,16 @@ a{color:var(--brand)}
 
 #login{min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr}
 .l-side{background:var(--nav);color:#fff;padding:56px 56px;display:flex;flex-direction:column;justify-content:center}
-.l-side .mark{background:var(--brand);color:#fff;margin-bottom:28px}
+.l-side .mark{background:var(--brand);color:#fff}
+.l-brand{font-size:46px;font-weight:800;letter-spacing:2px;line-height:1.1;margin-bottom:30px;text-transform:uppercase;animation:brandIn .8s cubic-bezier(.2,.8,.2,1) both}
+.l-brand .ld{background:linear-gradient(90deg,#60a5fa,#2563eb,#60a5fa);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:brandShine 3.5s linear infinite}
+.l-brand .wp{color:#fff}
+.l-side h2,.l-side p,.l-feat>div{animation:brandIn .8s cubic-bezier(.2,.8,.2,1) both}
+.l-side h2{animation-delay:.15s}.l-side p{animation-delay:.25s}
+.l-feat>div:nth-child(1){animation-delay:.35s}.l-feat>div:nth-child(2){animation-delay:.45s}.l-feat>div:nth-child(3){animation-delay:.55s}
+@keyframes brandIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes brandShine{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.l-brand,.l-brand .ld,.l-side h2,.l-side p,.l-feat>div{animation:none}}
 .l-side h2{font-size:34px;line-height:1.2;margin:0 0 12px;letter-spacing:-.5px}
 .l-side p{color:#aab6cf;font-size:16px;max-width:420px;margin:0 0 30px}
 .l-feat{display:grid;gap:14px;max-width:420px}
@@ -34,7 +43,7 @@ a{color:var(--brand)}
 .l-feat i{width:34px;height:34px;border-radius:9px;background:#1e293b;display:flex;align-items:center;justify-content:center;color:#7aa2ff;flex:none}
 .l-main{display:flex;align-items:center;justify-content:center;padding:32px;background:#fff}
 .login-card{width:100%;max-width:370px}
-.mark{width:42px;height:42px;background:var(--brand);color:#fff;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;letter-spacing:.5px}
+.mark{flex:none;white-space:nowrap;width:42px;height:42px;background:var(--brand);color:#fff;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;letter-spacing:.5px}
 .login-card h1{font-size:26px;margin:0 0 6px}
 .login-card .lead{margin:0 0 24px;color:var(--muted)}
 .field{margin-bottom:14px}
@@ -293,7 +302,7 @@ table.nps-t td.nw{white-space:nowrap}
 
 <div id="login">
   <div class="l-side">
-    <div class="mark">LD WORKPLACE</div>
+    <div class="l-brand"><span class="ld">LD</span> <span class="wp">WORKPLACE</span></div>
     <h2>Run every batch from one place.</h2>
     <p>Plan sessions, review calls and report the month without chasing spreadsheets.</p>
     <div class="l-feat">
