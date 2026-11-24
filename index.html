@@ -237,6 +237,10 @@ td.nw{white-space:nowrap}
 .loading{padding:70px;text-align:center;color:var(--muted)}
 .credit{font-size:12px;color:#94a3b8;text-align:center;margin-top:44px}
 .login-card .credit{margin-top:28px}
+.swap{margin-top:16px;font-size:13.5px;color:var(--muted);text-align:center}
+.linkbtn{background:none;border:0;padding:0;color:var(--brand);cursor:pointer;font-weight:600;font-size:inherit}
+.linkbtn:hover{text-decoration:underline}
+.okmsg{margin-top:12px;padding:10px 12px;border-radius:10px;background:#dcfce7;color:#166534;font-size:13.5px}
 .spin{width:16px;height:16px;border:2px solid #cbd5e1;border-top-color:var(--brand);border-radius:50%;animation:sp .8s linear infinite;display:inline-block;vertical-align:-3px;margin-right:8px}
 @keyframes sp{to{transform:rotate(360deg)}}
 
@@ -306,7 +310,20 @@ table.nps-t td.nw{white-space:nowrap}
       <div class="field"><label for="lp">Password</label><div class="pw"><input id="lp" name="password" type="password" autocomplete="current-password" required><button type="button" id="showPw">Show</button></div></div>
       <button class="btn block" id="loginBtn" type="submit">Sign in</button>
       <div class="err" id="loginErr"></div>
+      <div class="swap">New here? <button type="button" class="linkbtn" id="toSignup">Create an account</button></div>
       <div class="hintbox" id="demoHint" hidden>Demo mode: sign in with <b>demo</b> / <b>demo</b>. Data stays in this browser only.</div>
+      <div class="credit">&copy; 2026 Ismail Shikder</div>
+    </form>
+    <form class="login-card" id="signupForm" autocomplete="off" hidden>
+      <h1>Create an account</h1>
+      <p class="lead">You will get view-only access. An LD officer approves every new account first.</p>
+      <div class="field"><label for="sn">Full name</label><input id="sn" maxlength="40" required></div>
+      <div class="field"><label for="su">Username</label><input id="su" maxlength="30" autocapitalize="none" required><div class="hint">3 to 30 letters or numbers. You will sign in with this.</div></div>
+      <div class="field"><label for="sp">Password</label><input id="sp" type="password" autocomplete="new-password" required><div class="hint">At least 8 characters.</div></div>
+      <div class="field"><label for="sp2">Confirm password</label><input id="sp2" type="password" autocomplete="new-password" required></div>
+      <button class="btn block" id="signupBtn" type="submit">Request account</button>
+      <div class="err" id="signupErr"></div>
+      <div class="swap">Already have an account? <button type="button" class="linkbtn" id="toLogin">Sign in</button></div>
       <div class="credit">&copy; 2026 Ismail Shikder</div>
     </form>
   </div>
@@ -574,6 +591,7 @@ function demoNps() {
 function demoApi(action, p) {
   const db = demoDB(), save = () => localStorage.setItem('ld_demo2', JSON.stringify(db));
   SHEETS.forEach(s => { if (!db[s]) db[s] = []; });
+  if (action === 'signup') return { ok: true };
   if (action === 'login') return p.username === 'demo' && p.password === 'demo' ? { ok: true, token: 'demo', name: 'Ismail', sheetUrl: '', data: db } : { ok: false, message: 'Wrong username or password' };
   if (action === 'listAll') return { ok: true, data: db };
   if (action === 'npsTabs') { const d = demoNps(); return { ok: true, tabs: Object.keys(d).map(k => ({ name: k, rows: d[k].length + 3 })) }; }
@@ -1480,6 +1498,31 @@ $('#loginForm').onsubmit = async e => {
     startApp(pre);
   } catch (err) { $('#loginErr').textContent = err.message; }
   btn.disabled = false; btn.textContent = 'Sign in';
+};
+const showLogin = (signup, note) => {
+  $('#loginForm').hidden = !!signup; $('#signupForm').hidden = !signup;
+  $('#loginErr').textContent = ''; $('#signupErr').textContent = '';
+  const old = document.getElementById('loginOk'); if (old) old.remove();
+  if (!signup && note) { const d = document.createElement('div'); d.id = 'loginOk'; d.className = 'okmsg'; d.textContent = note; $('#loginErr').after(d); }
+  (signup ? $('#sn') : $('#lu')).focus();
+};
+$('#toSignup').onclick = () => showLogin(true);
+$('#toLogin').onclick = () => showLogin(false);
+$('#signupForm').onsubmit = async e => {
+  e.preventDefault();
+  const err = $('#signupErr'), btn = $('#signupBtn'), name = $('#sn').value.replace(/\s+/g, ' ').trim(), user = $('#su').value.trim().toLowerCase(), pw = $('#sp').value;
+  err.textContent = '';
+  if (name.length < 2) { err.textContent = 'Enter your full name'; return; }
+  if (!/^[a-z0-9._-]{3,30}$/.test(user)) { err.textContent = 'Username must be 3 to 30 letters or numbers (dot, dash and underscore are fine)'; return; }
+  if (pw.length < 8) { err.textContent = 'Password must be at least 8 characters'; return; }
+  if (pw !== $('#sp2').value) { err.textContent = 'The two passwords do not match'; return; }
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    await api('signup', { name: name, username: user, password: pw });
+    ['sn', 'su', 'sp', 'sp2'].forEach(id => { $('#' + id).value = ''; });
+    showLogin(false, 'Request sent. An LD officer must approve your account before you can sign in.');
+  } catch (ex) { err.textContent = ex.message; }
+  btn.disabled = false; btn.textContent = 'Request account';
 };
 $('#showPw').onclick = () => { const i = $('#lp'), s = i.type === 'password'; i.type = s ? 'text' : 'password'; $('#showPw').textContent = s ? 'Hide' : 'Show'; };
 $('#logoutBtn').onclick = () => signOut('');
